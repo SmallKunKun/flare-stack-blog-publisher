@@ -142,6 +142,7 @@ export async function publishNote(
     const categoryId = categoryIdFor(taxonomy.category);
     if (categoryId !== undefined) patch.categoryId = categoryId;
     if (cover.mediaId !== undefined) patch.coverMediaId = cover.mediaId;
+    if (slug !== undefined) patch.slug = slug;
 
     if (Object.keys(patch).length > 0) {
       const patched = await updateWithRetry(api, postId, patch, saveToken);
