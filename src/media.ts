@@ -1,6 +1,7 @@
 import { normalizePath, type App, type TFile } from "obsidian";
 import type { BlogApi } from "./api/client";
 import type { Media } from "./api/types";
+import { mapOutsideCode } from "./markdown-code";
 
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 
@@ -36,51 +37,53 @@ export async function uploadBodyImages(
   const cache: UploadCache = new Map();
   const warnings: string[] = [];
 
-  let result = await replaceAsync(
-    body,
-    /!\[\[([^\]\n]+)\]\]/g,
-    async (match) => {
-      const inner = match[1] ?? "";
-      const [targetPart, aliasPart] = splitOnce(inner, "|");
-      const target = stripSubpath(targetPart).trim();
-      if (!target || !isImagePath(target)) return match[0];
+  const result = await mapOutsideCode(body, async (segment) => {
+    let next = await replaceAsync(
+      segment,
+      /!\[\[([^\]\n]+)\]\]/g,
+      async (match) => {
+        const inner = match[1] ?? "";
+        const [targetPart, aliasPart] = splitOnce(inner, "|");
+        const target = stripSubpath(targetPart).trim();
+        if (!target || !isImagePath(target)) return match[0];
 
-      const file = resolveFile(app, target, sourcePath);
-      if (!file) {
-        throw new Error(`找不到图片：${target}`);
-      }
-      const media = await uploadFile(api, file, cache);
-      const alias = aliasPart?.trim();
-      const alt =
-        alias && !/^\d+(x\d+)?$/.test(alias)
-          ? alias
-          : file.basename;
-      return `![${escapeAlt(alt)}](${media.url})`;
-    },
-  );
+        const file = resolveFile(app, target, sourcePath);
+        if (!file) {
+          throw new Error(`找不到图片：${target}`);
+        }
+        const media = await uploadFile(api, file, cache);
+        const alias = aliasPart?.trim();
+        const alt =
+          alias && !/^\d+(x\d+)?$/.test(alias) ? alias : file.basename;
+        return `![${escapeAlt(alt)}](${media.url})`;
+      },
+    );
 
-  result = await replaceAsync(
-    result,
-    /!\[([^\]]*)\]\(([^)\n]+)\)/g,
-    async (match) => {
-      const alt = match[1] ?? "";
-      const destination = splitDestination(match[2] ?? "");
-      if (!destination) return match[0];
+    next = await replaceAsync(
+      next,
+      /!\[([^\]]*)\]\(([^)\n]+)\)/g,
+      async (match) => {
+        const alt = match[1] ?? "";
+        const destination = splitDestination(match[2] ?? "");
+        if (!destination) return match[0];
 
-      const target = destination.path.trim();
-      if (isRemoteOrMediaPath(target)) return match[0];
-      if (!isImagePath(target)) return match[0];
+        const target = destination.path.trim();
+        if (isRemoteOrMediaPath(target)) return match[0];
+        if (!isImagePath(target)) return match[0];
 
-      const decoded = safeDecode(target);
-      const file = resolveFile(app, decoded, sourcePath);
-      if (!file) {
-        throw new Error(`找不到图片：${target}`);
-      }
-      const media = await uploadFile(api, file, cache);
-      const tail = destination.tail ? ` ${destination.tail}` : "";
-      return `![${alt}](${media.url}${tail})`;
-    },
-  );
+        const decoded = safeDecode(target);
+        const file = resolveFile(app, decoded, sourcePath);
+        if (!file) {
+          throw new Error(`找不到图片：${target}`);
+        }
+        const media = await uploadFile(api, file, cache);
+        const tail = destination.tail ? ` ${destination.tail}` : "";
+        return `![${alt}](${media.url}${tail})`;
+      },
+    );
+
+    return next;
+  });
 
   return { body: result, warnings };
 }
