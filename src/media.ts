@@ -243,7 +243,15 @@ function splitDestination(
 
   const space = value.search(/\s/);
   if (space < 0) return { path: value, tail: "" };
-  return { path: value.slice(0, space), tail: value.slice(space + 1).trim() };
+
+  const tail = value.slice(space + 1).trim();
+  // A space does not always separate a title: Obsidian and many editors leave
+  // spaces in paths. Only treat the rest as a title when it has a title's
+  // shape ("...", '...' or (...)).
+  if (!/^(?:"[^"]*"|'[^']*'|\([^)]*\))$/.test(tail)) {
+    return { path: value, tail: "" };
+  }
+  return { path: value.slice(0, space), tail };
 }
 
 function safeDecode(value: string): string {

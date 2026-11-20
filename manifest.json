@@ -5,6 +5,5 @@
   "minAppVersion": "1.5.7",
   "description": "Publish Obsidian notes to a Flare Stack Blog over its Admin API.",
   "author": "Flare Stack Blog Publisher contributors",
-  "authorUrl": "",
   "isDesktopOnly": false
 }
