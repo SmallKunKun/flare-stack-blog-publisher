@@ -61,7 +61,7 @@ export async function uploadBodyImages(
 
     next = await replaceAsync(
       next,
-      /!\[([^\]]*)\]\(([^)\n]+)\)/g,
+      /!\[([^\]]*)\]\(((?:[^()\n]|\([^()\n]*\))*)\)/g,
       async (match) => {
         const alt = match[1] ?? "";
         const destination = splitDestination(match[2] ?? "");
