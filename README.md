@@ -166,6 +166,8 @@ fsb_updated_at: 2026-01-01T00:00:00.000Z
 - 插件只向你在设置中填写的站点发送请求，不连接第三方服务。
 - API Key 仅通过 `x-api-key` 请求头发送。
 - 请求会带浏览器 User-Agent，以通过博客可能启用的 Cloudflare WAF。
+- 请使用站点的最终地址（推荐 https），不要填写会跳转到其他域名的短链接。
+- 从 frontmatter 读取的 `fsb_url` 只有 `http` / `https` 地址才会被打开。
 - 不要把 `data.json`、`.env` 或个人截图提交到仓库。
 
 如果 API Key 泄露，请立即到博客后台撤销并重新生成。

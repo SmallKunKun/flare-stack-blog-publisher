@@ -147,7 +147,7 @@ export default class FlareStackBlogPublisher extends Plugin {
       const raw = await this.app.vault.read(file);
       const note = parseNote(raw);
       const storedUrl = stringValue(note.frontmatter.fsb_url);
-      if (storedUrl) {
+      if (storedUrl && isHttpUrl(storedUrl)) {
         window.open(storedUrl, "_blank");
         return;
       }
@@ -196,5 +196,14 @@ export default class FlareStackBlogPublisher extends Plugin {
       this.statusBarEl.setText("FSB 地址无效");
       this.statusBarEl.title = "请检查插件设置中的博客地址";
     }
+  }
+}
+
+function isHttpUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
   }
 }
