@@ -22,6 +22,7 @@ import {
 import { PostPickerModal, type PostPickerChoice } from "./post-picker";
 import { categoryIdFor, resolveTaxonomy } from "./taxonomy";
 import { uploadBodyImages, uploadCover } from "./media";
+import { convertWikiLinks } from "./links";
 
 export type PublishMode = "publish" | "draft";
 
@@ -73,6 +74,12 @@ export async function publishNote(
     const uploaded = await uploadBodyImages(app, api, body, file.path);
     publishBody = uploaded.body;
     warnings.push(...uploaded.warnings);
+  }
+
+  if (settings.convertWikiLinks) {
+    const converted = await convertWikiLinks(app, api, publishBody, file.path);
+    publishBody = converted.body;
+    warnings.push(...converted.warnings);
   }
 
   const cover = settings.uploadLocalImages
