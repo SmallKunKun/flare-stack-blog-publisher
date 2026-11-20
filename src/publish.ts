@@ -134,6 +134,10 @@ export async function publishNote(
     saveToken = result.saveToken;
     isNew = true;
 
+    // Keep the id even if a later step fails, so a retry updates this draft
+    // instead of creating a duplicate.
+    await writeBackMetadata(app, file, postId, null);
+
     const patch: UpdatePostData = {};
     const categoryId = categoryIdFor(taxonomy.category);
     if (categoryId !== undefined) patch.categoryId = categoryId;
