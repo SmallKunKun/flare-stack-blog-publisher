@@ -126,3 +126,21 @@ export function noteCategory(
   if (Array.isArray(categories)) return stringValue(categories[0]);
   return stringValue(categories);
 }
+
+export function hasTagField(
+  frontmatter: Record<string, unknown>,
+): boolean {
+  return (
+    Object.prototype.hasOwnProperty.call(frontmatter, "tags") ||
+    Object.prototype.hasOwnProperty.call(frontmatter, "tag")
+  );
+}
+
+export function hasCategoryField(
+  frontmatter: Record<string, unknown>,
+): boolean {
+  return (
+    Object.prototype.hasOwnProperty.call(frontmatter, "category") ||
+    Object.prototype.hasOwnProperty.call(frontmatter, "categories")
+  );
+}

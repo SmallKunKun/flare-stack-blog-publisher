@@ -105,15 +105,23 @@ export default class FlareStackBlogPublisher extends Plugin {
         return;
       }
 
-      if (outcome.published && outcome.postUrl) {
-        new Notice(`已发布《${outcome.title}》\n${outcome.postUrl}`, 8000);
-        if (this.settings.openAfterPublish) {
-          window.open(outcome.postUrl, "_blank");
+      if (outcome.published) {
+        if (outcome.postUrl) {
+          new Notice(`已发布《${outcome.title}》\n${outcome.postUrl}`, 8000);
+          if (this.settings.openAfterPublish) {
+            window.open(outcome.postUrl, "_blank");
+          }
+        } else {
+          new Notice(`已发布《${outcome.title}》。`);
         }
       } else if (outcome.created) {
         new Notice(`已创建草稿《${outcome.title}》，可到博客后台发布。`);
       } else {
         new Notice(`已更新草稿《${outcome.title}》。`);
+      }
+
+      if (outcome.warnings.length > 0) {
+        new Notice(outcome.warnings.join("\n"), 8000);
       }
     } catch (error) {
       console.error("Flare Stack Blog publish failed", error);

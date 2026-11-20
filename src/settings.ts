@@ -7,6 +7,7 @@ export interface PublisherSettings {
   apiKey: string;
   defaultCategory: string;
   defaultTags: string;
+  autoCreateTaxonomy: boolean;
   publishByDefault: boolean;
   uploadLocalImages: boolean;
   convertWikiLinks: boolean;
@@ -18,6 +19,7 @@ export const DEFAULT_SETTINGS: PublisherSettings = {
   apiKey: "",
   defaultCategory: "",
   defaultTags: "",
+  autoCreateTaxonomy: true,
   publishByDefault: true,
   uploadLocalImages: true,
   convertWikiLinks: true,
@@ -127,6 +129,20 @@ export class PublisherSettingTab extends PluginSettingTab {
           .setValue(this.plugin.settings.publishByDefault)
           .onChange(async (value) => {
             this.plugin.settings.publishByDefault = value;
+            await this.plugin.saveSettings();
+          }),
+      );
+
+    new Setting(containerEl)
+      .setName("自动创建分类和标签")
+      .setDesc(
+        "笔记里的分类或标签在博客中不存在时自动创建。关闭后只使用已有分类和标签。",
+      )
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.autoCreateTaxonomy)
+          .onChange(async (value) => {
+            this.plugin.settings.autoCreateTaxonomy = value;
             await this.plugin.saveSettings();
           }),
       );

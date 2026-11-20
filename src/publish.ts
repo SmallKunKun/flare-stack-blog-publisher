@@ -1,16 +1,26 @@
 import type { App, TFile } from "obsidian";
 import type { BlogApi } from "./api/client";
 import { BlogApiError } from "./api/errors";
-import type { AdminPost, UpdatePostData } from "./api/types";
+import type {
+  AdminPost,
+  SetTagsResult,
+  UpdatePostData,
+} from "./api/types";
 import type { PublisherSettings } from "./settings";
 import {
+  hasCategoryField,
+  hasTagField,
+  noteCategory,
   notePostId,
   noteSlug,
   noteSummary,
+  noteTags,
   noteTitle,
   parseNote,
+  stringList,
 } from "./note";
 import { PostPickerModal, type PostPickerChoice } from "./post-picker";
+import { categoryIdFor, resolveTaxonomy } from "./taxonomy";
 
 export type PublishMode = "publish" | "draft";
 
@@ -20,6 +30,7 @@ export interface PublishOutcome {
   created: boolean;
   published: boolean;
   title: string;
+  warnings: string[];
 }
 
 interface PublishContext {
@@ -33,7 +44,7 @@ export async function publishNote(
   file: TFile,
   mode: PublishMode,
 ): Promise<PublishOutcome | null> {
-  const { app, api } = context;
+  const { app, api, settings } = context;
   const raw = await app.vault.read(file);
   const note = parseNote(raw);
   const title = noteTitle(note.frontmatter, file.basename);
@@ -47,16 +58,35 @@ export async function publishNote(
   const slug = noteSlug(note.frontmatter);
 
   let postId = notePostId(note.frontmatter);
-  let created = false;
-
   if (postId === undefined) {
     const choice = await chooseExistingPost(app, api, title);
     if (choice === null) return null;
     if (choice.kind === "post") postId = choice.post.id;
   }
 
+  const created = postId === undefined;
+  const defaultTags = stringList(settings.defaultTags);
+  const categoryName = hasCategoryField(note.frontmatter)
+    ? (noteCategory(note.frontmatter) ?? "")
+    : created && settings.defaultCategory.trim()
+      ? settings.defaultCategory.trim()
+      : undefined;
+  const syncTags =
+    hasTagField(note.frontmatter) || (created && defaultTags.length > 0);
+  const tagNames = hasTagField(note.frontmatter)
+    ? noteTags(note.frontmatter)
+    : defaultTags;
+
+  const taxonomy = await resolveTaxonomy(api, {
+    categoryName,
+    syncTags,
+    tagNames,
+    autoCreate: settings.autoCreateTaxonomy,
+  });
+
   let saveToken: string;
   let publicSlug: string | null = null;
+  let isNew = false;
 
   if (postId !== undefined) {
     const current = await api.getPost(postId);
@@ -66,6 +96,9 @@ export async function publishNote(
       ...(summary !== undefined ? { summary } : {}),
       ...(slug !== undefined ? { slug } : {}),
     };
+    const categoryId = categoryIdFor(taxonomy.category);
+    if (categoryId !== undefined) data.categoryId = categoryId;
+
     const updated = await updateWithRetry(api, postId, data, current.saveToken);
     saveToken = updated.saveToken;
     publicSlug = updated.publicSlug;
@@ -77,7 +110,28 @@ export async function publishNote(
     });
     postId = result.id;
     saveToken = result.saveToken;
-    created = true;
+    isNew = true;
+
+    const categoryId = categoryIdFor(taxonomy.category);
+    if (categoryId !== undefined) {
+      const patched = await updateWithRetry(
+        api,
+        postId,
+        { categoryId },
+        saveToken,
+      );
+      saveToken = patched.saveToken;
+    }
+  }
+
+  if (taxonomy.tagIds !== undefined) {
+    const tagged = await setTagsWithRetry(
+      api,
+      postId,
+      taxonomy.tagIds,
+      saveToken,
+    );
+    saveToken = tagged.saveToken;
   }
 
   let published = false;
@@ -100,9 +154,10 @@ export async function publishNote(
   return {
     postId,
     postUrl,
-    created,
+    created: isNew,
     published,
     title,
+    warnings: taxonomy.warnings,
   };
 }
 
@@ -150,6 +205,21 @@ async function publishWithRetry(
     if (!(error instanceof BlogApiError) || !error.isEditConflict) throw error;
     const fresh = await api.getPost(postId);
     return api.publishPost(postId, fresh.saveToken);
+  }
+}
+
+async function setTagsWithRetry(
+  api: BlogApi,
+  postId: number,
+  tagIds: number[],
+  saveToken: string,
+): Promise<SetTagsResult> {
+  try {
+    return await api.setPostTags(postId, tagIds, saveToken);
+  } catch (error) {
+    if (!(error instanceof BlogApiError) || !error.isEditConflict) throw error;
+    const fresh = await api.getPost(postId);
+    return api.setPostTags(postId, tagIds, fresh.saveToken);
   }
 }
 
