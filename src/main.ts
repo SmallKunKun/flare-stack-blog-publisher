@@ -85,15 +85,15 @@ export default class FlareStackBlogPublisher extends Plugin {
   }
 
   private async runPublish(file: TFile, mode: PublishMode): Promise<void> {
-    const api = this.createApi();
-    if (!api.isConfigured) {
-      new Notice("请先在插件设置中填写 Admin API Key。");
+    if (!this.settings.siteUrl.trim() || !this.settings.apiKey.trim()) {
+      new Notice("请先在插件设置中填写博客地址和 Admin API Key。");
       return;
     }
 
     new Notice(mode === "publish" ? "正在发布到博客…" : "正在保存草稿…");
 
     try {
+      const api = this.createApi();
       const outcome = await publishNote(
         { app: this.app, api, settings: this.settings },
         file,
@@ -137,13 +137,13 @@ export default class FlareStackBlogPublisher extends Plugin {
   }
 
   private async openPost(file: TFile): Promise<void> {
-    const api = this.createApi();
-    if (!api.isConfigured) {
-      new Notice("请先在插件设置中填写 Admin API Key。");
+    if (!this.settings.siteUrl.trim() || !this.settings.apiKey.trim()) {
+      new Notice("请先在插件设置中填写博客地址和 Admin API Key。");
       return;
     }
 
     try {
+      const api = this.createApi();
       const raw = await this.app.vault.read(file);
       const note = parseNote(raw);
       const storedUrl = stringValue(note.frontmatter.fsb_url);
