@@ -2,6 +2,7 @@ import { normalizePath, type App, type TFile } from "obsidian";
 import type { BlogApi } from "./api/client";
 import type { Media } from "./api/types";
 import { mapOutsideCode } from "./markdown-code";
+import { imageUuidName } from "./uuid";
 
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 
@@ -26,6 +27,11 @@ export interface CoverUploadResult {
   warnings: string[];
 }
 
+export interface MediaUploadOptions {
+  /** Upload under a UUID-shaped name instead of the local file name. */
+  renameToUuid: boolean;
+}
+
 type UploadCache = Map<string, Media>;
 
 export async function uploadBodyImages(
@@ -33,6 +39,7 @@ export async function uploadBodyImages(
   api: BlogApi,
   body: string,
   sourcePath: string,
+  options: MediaUploadOptions,
 ): Promise<BodyUploadResult> {
   const cache: UploadCache = new Map();
   const warnings: string[] = [];
@@ -51,7 +58,7 @@ export async function uploadBodyImages(
         if (!file) {
           throw new Error(`找不到图片：${target}`);
         }
-        const media = await uploadFile(api, file, cache);
+        const media = await uploadFile(api, file, cache, options);
         const alias = aliasPart?.trim();
         const alt =
           alias && !/^\d+(x\d+)?$/.test(alias) ? alias : file.basename;
@@ -76,7 +83,7 @@ export async function uploadBodyImages(
         if (!file) {
           throw new Error(`找不到图片：${target}`);
         }
-        const media = await uploadFile(api, file, cache);
+        const media = await uploadFile(api, file, cache, options);
         const tail = destination.tail ? ` ${destination.tail}` : "";
         return `![${alt}](${media.url}${tail})`;
       },
@@ -93,6 +100,7 @@ export async function uploadCover(
   api: BlogApi,
   frontmatter: Record<string, unknown>,
   sourcePath: string,
+  options: MediaUploadOptions,
 ): Promise<CoverUploadResult> {
   const hasCover =
     Object.prototype.hasOwnProperty.call(frontmatter, "cover") ||
@@ -123,7 +131,7 @@ export async function uploadCover(
   }
 
   try {
-    const media = await uploadFile(api, file, new Map());
+    const media = await uploadFile(api, file, new Map(), options);
     return { mediaId: media.id, warnings: [] };
   } catch (error) {
     return {
@@ -161,15 +169,10 @@ async function uploadFile(
   api: BlogApi,
   file: TFile,
   cache: UploadCache,
+  options: MediaUploadOptions,
 ): Promise<Media> {
   const cached = cache.get(file.path);
   if (cached) return cached;
-
-  const existing = await findExistingMedia(api, file);
-  if (existing) {
-    cache.set(file.path, existing);
-    return existing;
-  }
 
   const extension = file.extension.toLocaleLowerCase();
   const mimeType = MIME_TYPES[extension];
@@ -180,22 +183,36 @@ async function uploadFile(
     throw new Error(`图片超过 10 MB：${file.name}`);
   }
 
-  const bytes = await file.vault.readBinary(file);
-  const media = await api.uploadMedia(file.name, mimeType, bytes);
+  let bytes: ArrayBuffer | undefined;
+  let uploadName = file.name;
+  if (options.renameToUuid) {
+    bytes = await file.vault.readBinary(file);
+    uploadName = await imageUuidName(file.name, bytes);
+  }
+
+  const existing = await findExistingMedia(api, uploadName, file.stat.size);
+  if (existing) {
+    cache.set(file.path, existing);
+    return existing;
+  }
+
+  if (!bytes) bytes = await file.vault.readBinary(file);
+  const media = await api.uploadMedia(uploadName, mimeType, bytes);
   cache.set(file.path, media);
   return media;
 }
 
 async function findExistingMedia(
   api: BlogApi,
-  file: TFile,
+  fileName: string,
+  sizeInBytes: number,
 ): Promise<Media | null> {
   try {
-    const page = await api.listMedia({ search: file.name, limit: 50 });
+    const page = await api.listMedia({ search: fileName, limit: 50 });
     return (
       page.items.find(
         (item) =>
-          item.fileName === file.name && item.sizeInBytes === file.stat.size,
+          item.fileName === fileName && item.sizeInBytes === sizeInBytes,
       ) ?? null
     );
   } catch {

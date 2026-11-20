@@ -70,8 +70,15 @@ export async function publishNote(
   const warnings: string[] = [];
 
   let publishBody = body;
+  const mediaOptions = { renameToUuid: settings.uuidImageNames };
   if (settings.uploadLocalImages) {
-    const uploaded = await uploadBodyImages(app, api, body, file.path);
+    const uploaded = await uploadBodyImages(
+      app,
+      api,
+      body,
+      file.path,
+      mediaOptions,
+    );
     publishBody = uploaded.body;
     warnings.push(...uploaded.warnings);
   }
@@ -83,7 +90,7 @@ export async function publishNote(
   }
 
   const cover = settings.uploadLocalImages
-    ? await uploadCover(app, api, note.frontmatter, file.path)
+    ? await uploadCover(app, api, note.frontmatter, file.path, mediaOptions)
     : { mediaId: undefined, warnings: [] };
   warnings.push(...cover.warnings);
   const defaultTags = stringList(settings.defaultTags);

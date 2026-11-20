@@ -10,6 +10,7 @@ export interface PublisherSettings {
   autoCreateTaxonomy: boolean;
   publishByDefault: boolean;
   uploadLocalImages: boolean;
+  uuidImageNames: boolean;
   convertWikiLinks: boolean;
   openAfterPublish: boolean;
 }
@@ -22,6 +23,7 @@ export const DEFAULT_SETTINGS: PublisherSettings = {
   autoCreateTaxonomy: true,
   publishByDefault: true,
   uploadLocalImages: true,
+  uuidImageNames: false,
   convertWikiLinks: true,
   openAfterPublish: false,
 };
@@ -157,6 +159,20 @@ export class PublisherSettingTab extends PluginSettingTab {
           .setValue(this.plugin.settings.uploadLocalImages)
           .onChange(async (value) => {
             this.plugin.settings.uploadLocalImages = value;
+            await this.plugin.saveSettings();
+          }),
+      );
+
+    new Setting(containerEl)
+      .setName("UUID 文件名")
+      .setDesc(
+        "上传时把图片命名为 3c9a1f7e-5b2d-4a8c-9e6f-1d4b7a2c8e90 这样的 UUID。只改云端文件名，不改本地文件；相同内容复用同一个名称。",
+      )
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.uuidImageNames)
+          .onChange(async (value) => {
+            this.plugin.settings.uuidImageNames = value;
             await this.plugin.saveSettings();
           }),
       );
