@@ -8,7 +8,6 @@ export interface PublisherSettings {
   defaultCategory: string;
   defaultTags: string;
   autoCreateTaxonomy: boolean;
-  publishByDefault: boolean;
   uploadLocalImages: boolean;
   uuidImageNames: boolean;
   convertWikiLinks: boolean;
@@ -21,7 +20,6 @@ export const DEFAULT_SETTINGS: PublisherSettings = {
   defaultCategory: "",
   defaultTags: "",
   autoCreateTaxonomy: true,
-  publishByDefault: true,
   uploadLocalImages: true,
   uuidImageNames: false,
   convertWikiLinks: true,
@@ -119,18 +117,6 @@ export class PublisherSettingTab extends PluginSettingTab {
           .setValue(this.plugin.settings.defaultTags)
           .onChange(async (value) => {
             this.plugin.settings.defaultTags = value;
-            await this.plugin.saveSettings();
-          }),
-      );
-
-    new Setting(containerEl)
-      .setName("默认直接发布")
-      .setDesc("关闭后，「发布当前笔记」只保存草稿，需要到博客后台手动发布。")
-      .addToggle((toggle) =>
-        toggle
-          .setValue(this.plugin.settings.publishByDefault)
-          .onChange(async (value) => {
-            this.plugin.settings.publishByDefault = value;
             await this.plugin.saveSettings();
           }),
       );
