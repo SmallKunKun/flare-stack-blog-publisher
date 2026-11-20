@@ -429,6 +429,13 @@ export default class FlareStackBlogPublisher extends Plugin {
   }
 
   private async openVaultFile(file: TFile): Promise<void> {
+    for (const leaf of this.app.workspace.getLeavesOfType("markdown")) {
+      const view = leaf.view;
+      if (view instanceof MarkdownView && view.file?.path === file.path) {
+        this.app.workspace.setActiveLeaf(leaf, { focus: true });
+        return;
+      }
+    }
     const leaf = this.app.workspace.getLeaf("tab");
     await leaf.openFile(file);
   }
