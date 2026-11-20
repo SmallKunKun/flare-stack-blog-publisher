@@ -1,9 +1,7 @@
 import type { App, TFile } from "obsidian";
 import type { BlogApi } from "./api/client";
-import type {
-  AdminPost,
-  UpdatePostData,
-} from "./api/types";
+import { BlogApiError } from "./api/errors";
+import type { AdminPost, UpdatePostData } from "./api/types";
 import type { PublisherSettings } from "./settings";
 import {
   notePostId,
@@ -12,6 +10,7 @@ import {
   noteTitle,
   parseNote,
 } from "./note";
+import { PostPickerModal, type PostPickerChoice } from "./post-picker";
 
 export type PublishMode = "publish" | "draft";
 
@@ -33,7 +32,7 @@ export async function publishNote(
   context: PublishContext,
   file: TFile,
   mode: PublishMode,
-): Promise<PublishOutcome> {
+): Promise<PublishOutcome | null> {
   const { app, api } = context;
   const raw = await app.vault.read(file);
   const note = parseNote(raw);
@@ -44,26 +43,30 @@ export async function publishNote(
   }
 
   const body = note.body;
-
   const summary = noteSummary(note.frontmatter);
   const slug = noteSlug(note.frontmatter);
-  const existingId = notePostId(note.frontmatter);
 
-  let postId: number;
-  let saveToken: string;
+  let postId = notePostId(note.frontmatter);
   let created = false;
+
+  if (postId === undefined) {
+    const choice = await chooseExistingPost(app, api, title);
+    if (choice === null) return null;
+    if (choice.kind === "post") postId = choice.post.id;
+  }
+
+  let saveToken: string;
   let publicSlug: string | null = null;
 
-  if (existingId !== undefined) {
-    const current = await api.getPost(existingId);
+  if (postId !== undefined) {
+    const current = await api.getPost(postId);
     const data: UpdatePostData = {
       title,
       contentMarkdown: body,
       ...(summary !== undefined ? { summary } : {}),
       ...(slug !== undefined ? { slug } : {}),
     };
-    const updated = await api.updatePost(existingId, data, current.saveToken);
-    postId = updated.id;
+    const updated = await updateWithRetry(api, postId, data, current.saveToken);
     saveToken = updated.saveToken;
     publicSlug = updated.publicSlug;
   } else {
@@ -79,13 +82,12 @@ export async function publishNote(
 
   let published = false;
   if (mode === "publish") {
-    const result = await api.publishPost(postId, saveToken);
+    const result = await publishWithRetry(api, postId, saveToken);
     saveToken = result.saveToken;
     published = true;
 
     const after = await api.getPost(postId);
     publicSlug = after.publicSlug;
-    saveToken = after.saveToken;
   }
 
   const postUrl =
@@ -104,6 +106,53 @@ export async function publishNote(
   };
 }
 
+async function chooseExistingPost(
+  app: App,
+  api: BlogApi,
+  title: string,
+): Promise<PostPickerChoice> {
+  const page = await api.listPosts({ search: title, limit: 20 });
+  const needle = title.trim().toLocaleLowerCase();
+  const matches = page.items.filter(
+    (post) => post.title.trim().toLocaleLowerCase() === needle,
+  );
+
+  if (matches.length === 0) return { kind: "new" };
+
+  return new Promise<PostPickerChoice>((resolve) => {
+    new PostPickerModal(app, matches, resolve).open();
+  });
+}
+
+async function updateWithRetry(
+  api: BlogApi,
+  postId: number,
+  data: UpdatePostData,
+  saveToken: string,
+): Promise<AdminPost> {
+  try {
+    return await api.updatePost(postId, data, saveToken);
+  } catch (error) {
+    if (!(error instanceof BlogApiError) || !error.isEditConflict) throw error;
+    const fresh = await api.getPost(postId);
+    return api.updatePost(postId, data, fresh.saveToken);
+  }
+}
+
+async function publishWithRetry(
+  api: BlogApi,
+  postId: number,
+  saveToken: string,
+) {
+  try {
+    return await api.publishPost(postId, saveToken);
+  } catch (error) {
+    if (!(error instanceof BlogApiError) || !error.isEditConflict) throw error;
+    const fresh = await api.getPost(postId);
+    return api.publishPost(postId, fresh.saveToken);
+  }
+}
+
 async function writeBackMetadata(
   app: App,
   file: TFile,
@@ -120,6 +169,7 @@ async function writeBackMetadata(
 }
 
 export function postUrlOf(api: BlogApi, post: AdminPost): string | null {
-  const slug = post.publicSlug ?? (post.status === "published" ? post.slug : null);
+  const slug =
+    post.publicSlug ?? (post.status === "published" ? post.slug : null);
   return slug ? `${api.siteOrigin}/post/${encodeURIComponent(slug)}` : null;
 }

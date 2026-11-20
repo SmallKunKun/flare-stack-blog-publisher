@@ -1,7 +1,8 @@
 import { Notice, Plugin, type TFile } from "obsidian";
 import { BlogApi, normalizeSiteUrl } from "./api/client";
 import { describeApiError } from "./api/errors";
-import { publishNote, type PublishMode } from "./publish";
+import { notePostId, parseNote, stringValue } from "./note";
+import { postUrlOf, publishNote, type PublishMode } from "./publish";
 import {
   DEFAULT_SETTINGS,
   PublisherSettingTab,
@@ -64,6 +65,17 @@ export default class FlareStackBlogPublisher extends Plugin {
         return true;
       },
     });
+
+    this.addCommand({
+      id: "open-current-post",
+      name: "打开当前笔记对应的博客文章",
+      checkCallback: (checking) => {
+        const file = this.activeMarkdownFile();
+        if (!file) return false;
+        if (!checking) void this.openPost(file);
+        return true;
+      },
+    });
   }
 
   private activeMarkdownFile(): TFile | null {
@@ -88,6 +100,11 @@ export default class FlareStackBlogPublisher extends Plugin {
         mode,
       );
 
+      if (!outcome) {
+        new Notice("已取消发布。");
+        return;
+      }
+
       if (outcome.published && outcome.postUrl) {
         new Notice(`已发布《${outcome.title}》\n${outcome.postUrl}`, 8000);
         if (this.settings.openAfterPublish) {
@@ -109,6 +126,41 @@ export default class FlareStackBlogPublisher extends Plugin {
       siteUrl: this.settings.siteUrl,
       apiKey: this.settings.apiKey,
     });
+  }
+
+  private async openPost(file: TFile): Promise<void> {
+    const api = this.createApi();
+    if (!api.isConfigured) {
+      new Notice("请先在插件设置中填写 Admin API Key。");
+      return;
+    }
+
+    try {
+      const raw = await this.app.vault.read(file);
+      const note = parseNote(raw);
+      const storedUrl = stringValue(note.frontmatter.fsb_url);
+      if (storedUrl) {
+        window.open(storedUrl, "_blank");
+        return;
+      }
+
+      const postId = notePostId(note.frontmatter);
+      if (postId === undefined) {
+        new Notice("这篇笔记还没有关联博客文章，请先发布一次。");
+        return;
+      }
+
+      const post = await api.getPost(postId);
+      const url = postUrlOf(api, post);
+      if (!url) {
+        new Notice("这篇文章还没有发布，暂时没有公开页面。");
+        return;
+      }
+      window.open(url, "_blank");
+    } catch (error) {
+      console.error("Flare Stack Blog open post failed", error);
+      new Notice(`打开失败：${describeApiError(error)}`, 8000);
+    }
   }
 
   async loadSettings(): Promise<void> {
