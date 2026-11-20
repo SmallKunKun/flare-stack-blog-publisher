@@ -75,7 +75,7 @@ async function postUrlFor(
   }
 
   const storedUrl = stringValue(frontmatter?.fsb_url);
-  if (storedUrl) return storedUrl;
+  if (storedUrl && isHttpUrl(storedUrl)) return storedUrl;
 
   const slug = stringValue(frontmatter?.slug);
   const postId = numberValue(frontmatter?.fsb_post_id);
@@ -83,6 +83,15 @@ async function postUrlFor(
     return `${api.siteOrigin}/post/${encodeURIComponent(slug)}`;
   }
   return null;
+}
+
+function isHttpUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
 }
 
 function slugifyHeading(text: string): string {
