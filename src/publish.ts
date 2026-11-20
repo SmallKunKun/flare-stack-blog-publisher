@@ -166,8 +166,14 @@ export async function publishNote(
     saveToken = result.saveToken;
     published = true;
 
-    const after = await api.getPost(postId);
-    publicSlug = after.publicSlug;
+    try {
+      const after = await api.getPost(postId);
+      publicSlug = after.publicSlug;
+    } catch {
+      // Publishing already succeeded; a failed read should not turn it into a
+      // reported failure. Fall back to the slug this save stated.
+      if (slug !== undefined) publicSlug = slug;
+    }
   }
 
   const postUrl =
