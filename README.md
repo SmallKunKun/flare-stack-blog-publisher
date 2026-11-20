@@ -25,26 +25,80 @@
 
 ## 安装
 
-### 手动安装
+需要 Node.js 20 或更高版本。
 
-1. 下载或构建 `main.js`、`manifest.json`、`styles.css`。
-2. 在 vault 中创建目录：
+### 方式一：一键安装到本机 vault（推荐）
+
+```bash
+git clone <this-repository>
+cd obsidian-flare-stack-blog
+npm install
+
+# 自动查找 vault；找到多个时会提示选择
+npm run install:plugin
+
+# 也可以直接指定 vault
+npm run install:plugin -- /path/to/MyVault
+```
+
+开发或经常改代码时，用符号链接模式：
+
+```bash
+npm run link:plugin
+```
+
+它只把 `main.js`、`manifest.json`、`styles.css` 三个文件链接到仓库，
+`data.json` 仍留在 vault 里。配合 `npm run dev`，改完代码后在 Obsidian
+执行「重新加载应用」即可。Windows 不支持文件符号链接时会自动改为复制。
+
+安装完成后：
+
+1. 重启 Obsidian，或在命令面板执行「重新加载应用」。
+2. 设置 → 第三方插件 → 关闭安全模式 → 启用 **Flare Stack Blog Publisher**。
+
+### 方式二：BRAT（GitHub 发布后，自动更新）
+
+适合把仓库推到 GitHub 后使用，之后更新不用再手动复制文件。
+
+1. 推送仓库并打一个版本 tag：
+
+   ```bash
+   git tag 0.1.0
+   git push origin 0.1.0
+   ```
+
+   GitHub Actions 会构建并创建 Release，附上 `main.js`、`manifest.json`、
+   `styles.css` 和安装包 zip。
+
+2. 在 Obsidian 的社区插件中安装 **BRAT**。
+3. 打开 BRAT → **Add Beta Plugin**。
+4. 输入仓库地址，例如：
+
+   ```text
+   你的GitHub用户名/obsidian-flare-stack-blog
+   ```
+
+5. 启用 **Flare Stack Blog Publisher**。
+
+仓库必须是公开的。以后发布新版本时，BRAT 会检查并自动更新。
+
+> 长期最方便的方式是提交到 Obsidian 官方社区插件目录，但需要经过审核。
+
+### 方式三：手动安装
+
+1. 下载 Release 中的 `flare-stack-blog-publisher.zip` 并解压，或自行构建
+   `main.js`、`manifest.json`、`styles.css`。
+2. 把三个文件放进：
 
    ```text
    <vault>/.obsidian/plugins/flare-stack-blog-publisher/
    ```
 
-3. 把三个文件放进该目录。
-4. 重启 Obsidian，在「设置 → 第三方插件」中启用
-   **Flare Stack Blog Publisher**。
+3. 重启 Obsidian，在「设置 → 第三方插件」中启用插件。
 
 ### 从源码构建
 
-需要 Node.js 20 或更高版本：
-
 ```bash
-git clone <this-repository>
-cd obsidian-flare-stack-blog
 npm install
 npm run build
 ```
@@ -202,6 +256,8 @@ src/
   media.ts      本地图片上传
   links.ts      双链转换
   taxonomy.ts   分类与标签解析
+scripts/
+  install.mjs   一键安装到 vault
 ```
 
 发布新版本：

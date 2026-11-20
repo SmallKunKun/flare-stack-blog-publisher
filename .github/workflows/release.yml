@@ -27,6 +27,13 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Package plugin
+        run: |
+          mkdir -p release
+          cp main.js manifest.json styles.css release/
+          cd release
+          zip -r ../flare-stack-blog-publisher.zip .
+
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
@@ -34,3 +41,4 @@ jobs:
             main.js
             manifest.json
             styles.css
+            flare-stack-blog-publisher.zip

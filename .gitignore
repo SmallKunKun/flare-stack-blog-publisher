@@ -3,6 +3,8 @@ main.js
 main.js.map
 *.js.map
 data.json
+release/
+*.zip
 .env
 .env.*
 !.env.example
