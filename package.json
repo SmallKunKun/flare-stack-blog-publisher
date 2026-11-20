@@ -1,0 +1,24 @@
+{
+  "name": "obsidian-flare-stack-blog-publisher",
+  "version": "0.1.0",
+  "description": "Publish Obsidian notes to a Flare Stack Blog over its Admin API.",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "tsc --noEmit && node esbuild.config.mjs production",
+    "check": "tsc --noEmit"
+  },
+  "keywords": [
+    "obsidian",
+    "obsidian-plugin",
+    "flare-stack-blog",
+    "blog"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "esbuild": "^0.24.2",
+    "obsidian": "^1.7.7",
+    "typescript": "^5.7.2"
+  }
+}
