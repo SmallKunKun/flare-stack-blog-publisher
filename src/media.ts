@@ -165,6 +165,12 @@ async function uploadFile(
   const cached = cache.get(file.path);
   if (cached) return cached;
 
+  const existing = await findExistingMedia(api, file);
+  if (existing) {
+    cache.set(file.path, existing);
+    return existing;
+  }
+
   const extension = file.extension.toLocaleLowerCase();
   const mimeType = MIME_TYPES[extension];
   if (!mimeType) {
@@ -178,6 +184,24 @@ async function uploadFile(
   const media = await api.uploadMedia(file.name, mimeType, bytes);
   cache.set(file.path, media);
   return media;
+}
+
+async function findExistingMedia(
+  api: BlogApi,
+  file: TFile,
+): Promise<Media | null> {
+  try {
+    const page = await api.listMedia({ search: file.name, limit: 50 });
+    return (
+      page.items.find(
+        (item) =>
+          item.fileName === file.name && item.sizeInBytes === file.stat.size,
+      ) ?? null
+    );
+  } catch {
+    // A failed lookup should not stop an upload; the upload may still work.
+    return null;
+  }
 }
 
 function isImagePath(value: string): boolean {

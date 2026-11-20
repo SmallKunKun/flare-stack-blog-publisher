@@ -8,6 +8,7 @@ import type {
   CreatePostData,
   CreatePostResult,
   Media,
+  MediaListPage,
   SetTagsResult,
   TagRef,
   UpdatePostData,
@@ -125,6 +126,14 @@ export class BlogApi {
     return this.request<CategoryOption[]>("GET", "/admin/categories/options");
   }
 
+  async listMedia(params: {
+    search?: string;
+    limit?: number;
+  } = {}): Promise<MediaListPage> {
+    return this.request<MediaListPage>("GET", "/admin/media", {
+      query: { search: params.search, limit: params.limit },
+    });
+  }
   async createCategory(name: string): Promise<CategoryOption> {
     return this.request<CategoryOption>("POST", "/admin/categories", {
       body: { name },

@@ -100,6 +100,11 @@ export interface Media {
   createdAt: string;
 }
 
+export interface MediaListPage {
+  items: Media[];
+  nextCursor: number | null;
+}
+
 export interface CategoryOption {
   id: number;
   name: string;
