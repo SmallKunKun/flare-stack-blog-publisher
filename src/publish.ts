@@ -21,6 +21,7 @@ import {
 } from "./note";
 import { PostPickerModal, type PostPickerChoice } from "./post-picker";
 import { categoryIdFor, resolveTaxonomy } from "./taxonomy";
+import { uploadBodyImages, uploadCover } from "./media";
 
 export type PublishMode = "publish" | "draft";
 
@@ -65,6 +66,19 @@ export async function publishNote(
   }
 
   const created = postId === undefined;
+  const warnings: string[] = [];
+
+  let publishBody = body;
+  if (settings.uploadLocalImages) {
+    const uploaded = await uploadBodyImages(app, api, body, file.path);
+    publishBody = uploaded.body;
+    warnings.push(...uploaded.warnings);
+  }
+
+  const cover = settings.uploadLocalImages
+    ? await uploadCover(app, api, note.frontmatter, file.path)
+    : { mediaId: undefined, warnings: [] };
+  warnings.push(...cover.warnings);
   const defaultTags = stringList(settings.defaultTags);
   const categoryName = hasCategoryField(note.frontmatter)
     ? (noteCategory(note.frontmatter) ?? "")
@@ -92,12 +106,13 @@ export async function publishNote(
     const current = await api.getPost(postId);
     const data: UpdatePostData = {
       title,
-      contentMarkdown: body,
+      contentMarkdown: publishBody,
       ...(summary !== undefined ? { summary } : {}),
       ...(slug !== undefined ? { slug } : {}),
     };
     const categoryId = categoryIdFor(taxonomy.category);
     if (categoryId !== undefined) data.categoryId = categoryId;
+    if (cover.mediaId !== undefined) data.coverMediaId = cover.mediaId;
 
     const updated = await updateWithRetry(api, postId, data, current.saveToken);
     saveToken = updated.saveToken;
@@ -105,21 +120,20 @@ export async function publishNote(
   } else {
     const result = await api.createPost({
       title,
-      contentMarkdown: body,
+      contentMarkdown: publishBody,
       ...(summary !== undefined ? { summary } : {}),
     });
     postId = result.id;
     saveToken = result.saveToken;
     isNew = true;
 
+    const patch: UpdatePostData = {};
     const categoryId = categoryIdFor(taxonomy.category);
-    if (categoryId !== undefined) {
-      const patched = await updateWithRetry(
-        api,
-        postId,
-        { categoryId },
-        saveToken,
-      );
+    if (categoryId !== undefined) patch.categoryId = categoryId;
+    if (cover.mediaId !== undefined) patch.coverMediaId = cover.mediaId;
+
+    if (Object.keys(patch).length > 0) {
+      const patched = await updateWithRetry(api, postId, patch, saveToken);
       saveToken = patched.saveToken;
     }
   }
@@ -157,7 +171,7 @@ export async function publishNote(
     created: isNew,
     published,
     title,
-    warnings: taxonomy.warnings,
+    warnings: [...taxonomy.warnings, ...warnings],
   };
 }
 
