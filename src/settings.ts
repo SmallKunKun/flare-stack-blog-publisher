@@ -7,6 +7,7 @@ export interface PublisherSettings {
   apiKey: string;
   defaultCategory: string;
   defaultTags: string;
+  pullFolder: string;
   autoCreateTaxonomy: boolean;
   uploadLocalImages: boolean;
   uuidImageNames: boolean;
@@ -19,6 +20,7 @@ export const DEFAULT_SETTINGS: PublisherSettings = {
   apiKey: "",
   defaultCategory: "",
   defaultTags: "",
+  pullFolder: "FlareStackBlog",
   autoCreateTaxonomy: true,
   uploadLocalImages: true,
   uuidImageNames: false,
@@ -117,6 +119,21 @@ export class PublisherSettingTab extends PluginSettingTab {
           .setValue(this.plugin.settings.defaultTags)
           .onChange(async (value) => {
             this.plugin.settings.defaultTags = value;
+            await this.plugin.saveSettings();
+          }),
+      );
+
+    new Setting(containerEl)
+      .setName("拉取目录")
+      .setDesc(
+        "从云端拉取的文章放在这个目录下，每篇文章一个独立子文件夹。",
+      )
+      .addText((text) =>
+        text
+          .setPlaceholder("FlareStackBlog")
+          .setValue(this.plugin.settings.pullFolder)
+          .onChange(async (value) => {
+            this.plugin.settings.pullFolder = value;
             await this.plugin.saveSettings();
           }),
       );

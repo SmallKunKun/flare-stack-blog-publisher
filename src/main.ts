@@ -7,8 +7,16 @@ import {
 } from "obsidian";
 import { BlogApi, normalizeSiteUrl } from "./api/client";
 import { describeApiError } from "./api/errors";
+import type { AdminPostListItem } from "./api/types";
 import { notePostId, parseNote, stringValue } from "./note";
 import { postUrlOf, publishNote, type PublishMode } from "./publish";
+import {
+  findLocalPostFile,
+  localPostIds,
+  pullPostToLocal,
+} from "./pull";
+import { PullConflictModal } from "./pull-conflict-modal";
+import { PullPostModal } from "./pull-modal";
 import {
   DEFAULT_SETTINGS,
   PublisherSettingTab,
@@ -39,6 +47,10 @@ export default class FlareStackBlogPublisher extends Plugin {
 
     this.addRibbonIcon("upload", "发布当前笔记到博客", () => {
       this.publishActive("publish");
+    });
+
+    this.addRibbonIcon("download", "拉取云端文章到本地", () => {
+      void this.openPullModal();
     });
 
     this.registerEvent(
@@ -99,6 +111,12 @@ export default class FlareStackBlogPublisher extends Plugin {
         if (!checking) void this.openPost(file);
         return true;
       },
+    });
+
+    this.addCommand({
+      id: "pull-post",
+      name: "从云端拉取文章到本地",
+      callback: () => void this.openPullModal(),
     });
   }
 
@@ -193,6 +211,12 @@ export default class FlareStackBlogPublisher extends Plugin {
           }
           void this.openPost(file);
         }),
+    );
+    menu.addItem((item) =>
+      item
+        .setTitle("拉取云端文章…")
+        .setIcon("download")
+        .onClick(() => void this.openPullModal()),
     );
     menu.addSeparator();
     menu.addItem((item) =>
@@ -332,6 +356,81 @@ export default class FlareStackBlogPublisher extends Plugin {
       console.error("Flare Stack Blog open post failed", error);
       new Notice(`打开失败：${describeApiError(error)}`, 8000);
     }
+  }
+
+  private async openPullModal(): Promise<void> {
+    if (!this.isConfigured()) {
+      new Notice("请先在插件设置中填写博客地址和 Admin API Key。");
+      this.openPluginSettings();
+      return;
+    }
+
+    try {
+      const api = this.createApi();
+      const localIds = await localPostIds(this.app, this.settings.pullFolder);
+      new PullPostModal(
+        this.app,
+        api,
+        (postId) => localIds.has(postId),
+        (post) => void this.handlePullChoice(api, post),
+      ).open();
+    } catch (error) {
+      console.error("Flare Stack Blog pull list failed", error);
+      new Notice(`读取云端文章失败：${describeApiError(error)}`, 8000);
+    }
+  }
+
+  private async handlePullChoice(
+    api: BlogApi,
+    post: AdminPostListItem,
+  ): Promise<void> {
+    try {
+      const existing = await findLocalPostFile(
+        this.app,
+        this.settings.pullFolder,
+        post.id,
+      );
+      if (existing) {
+        new PullConflictModal(
+          this.app,
+          post.title,
+          () => void this.openVaultFile(existing),
+          () => void this.pullAndOpen(api, post, existing),
+        ).open();
+        return;
+      }
+      await this.pullAndOpen(api, post, null);
+    } catch (error) {
+      console.error("Flare Stack Blog pull failed", error);
+      new Notice(`拉取失败：${describeApiError(error)}`, 10000);
+    }
+  }
+
+  private async pullAndOpen(
+    api: BlogApi,
+    post: AdminPostListItem,
+    existing: TFile | null,
+  ): Promise<void> {
+    new Notice(`正在拉取《${post.title}》…`);
+    try {
+      const file = await pullPostToLocal(
+        this.app,
+        api,
+        post,
+        this.settings.pullFolder,
+        existing,
+      );
+      await this.openVaultFile(file);
+      new Notice(`已拉取《${post.title}》\n${file.path}`, 6000);
+    } catch (error) {
+      console.error("Flare Stack Blog pull failed", error);
+      new Notice(`拉取失败：${describeApiError(error)}`, 10000);
+    }
+  }
+
+  private async openVaultFile(file: TFile): Promise<void> {
+    const leaf = this.app.workspace.getLeaf("tab");
+    await leaf.openFile(file);
   }
 
   async loadSettings(): Promise<void> {
