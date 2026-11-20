@@ -119,8 +119,10 @@ export function noteTags(frontmatter: Record<string, unknown>): string[] {
 export function noteCategory(
   frontmatter: Record<string, unknown>,
 ): string | undefined {
-  const category = stringValue(frontmatter.category);
-  if (category) return category;
+  const category = frontmatter.category;
+  if (Array.isArray(category)) return stringValue(category[0]);
+  const single = stringValue(category);
+  if (single) return single;
 
   const categories = frontmatter.categories;
   if (Array.isArray(categories)) return stringValue(categories[0]);
