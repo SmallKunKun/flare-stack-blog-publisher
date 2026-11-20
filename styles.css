@@ -16,6 +16,15 @@
   width: min(640px, 90vw);
 }
 
+.modal.fsb-new-post-modal {
+  width: min(560px, 90vw);
+}
+
+.fsb-new-post-hint {
+  color: var(--text-muted);
+  margin-top: 0;
+}
+
 .fsb-pull-search {
   width: 100%;
 }

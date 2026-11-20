@@ -8,6 +8,7 @@ export interface PublisherSettings {
   defaultCategory: string;
   defaultTags: string;
   pullFolder: string;
+  newPostFolder: string;
   autoCreateTaxonomy: boolean;
   uploadLocalImages: boolean;
   uuidImageNames: boolean;
@@ -21,6 +22,7 @@ export const DEFAULT_SETTINGS: PublisherSettings = {
   defaultCategory: "",
   defaultTags: "",
   pullFolder: "FlareStackBlog",
+  newPostFolder: "FlareStackBlog/Drafts",
   autoCreateTaxonomy: true,
   uploadLocalImages: true,
   uuidImageNames: false,
@@ -134,6 +136,21 @@ export class PublisherSettingTab extends PluginSettingTab {
           .setValue(this.plugin.settings.pullFolder)
           .onChange(async (value) => {
             this.plugin.settings.pullFolder = value;
+            await this.plugin.saveSettings();
+          }),
+      );
+
+    new Setting(containerEl)
+      .setName("新建文章目录")
+      .setDesc(
+        "新建的博客文章放在这个目录下，每篇文章一个独立子文件夹。",
+      )
+      .addText((text) =>
+        text
+          .setPlaceholder("FlareStackBlog/Drafts")
+          .setValue(this.plugin.settings.newPostFolder)
+          .onChange(async (value) => {
+            this.plugin.settings.newPostFolder = value;
             await this.plugin.saveSettings();
           }),
       );

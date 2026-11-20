@@ -8,6 +8,8 @@ import {
 import { BlogApi, normalizeSiteUrl } from "./api/client";
 import { describeApiError } from "./api/errors";
 import type { AdminPostListItem } from "./api/types";
+import { createPostNote, type NewPostForm } from "./create-post";
+import { NewPostModal } from "./new-post-modal";
 import { notePostId, parseNote, stringValue } from "./note";
 import { postUrlOf, publishNote, type PublishMode } from "./publish";
 import {
@@ -51,6 +53,10 @@ export default class FlareStackBlogPublisher extends Plugin {
 
     this.addRibbonIcon("download", "拉取云端文章到本地", () => {
       void this.openPullModal();
+    });
+
+    this.addRibbonIcon("plus", "新建博客文章", () => {
+      this.openNewPostModal();
     });
 
     this.registerEvent(
@@ -117,6 +123,12 @@ export default class FlareStackBlogPublisher extends Plugin {
       id: "pull-post",
       name: "从云端拉取文章到本地",
       callback: () => void this.openPullModal(),
+    });
+
+    this.addCommand({
+      id: "new-post",
+      name: "新建博客文章",
+      callback: () => this.openNewPostModal(),
     });
   }
 
@@ -217,6 +229,12 @@ export default class FlareStackBlogPublisher extends Plugin {
         .setTitle("拉取云端文章…")
         .setIcon("download")
         .onClick(() => void this.openPullModal()),
+    );
+    menu.addItem((item) =>
+      item
+        .setTitle("新建博客文章…")
+        .setIcon("plus")
+        .onClick(() => this.openNewPostModal()),
     );
     menu.addSeparator();
     menu.addItem((item) =>
@@ -377,6 +395,27 @@ export default class FlareStackBlogPublisher extends Plugin {
     } catch (error) {
       console.error("Flare Stack Blog pull list failed", error);
       new Notice(`读取云端文章失败：${describeApiError(error)}`, 8000);
+    }
+  }
+
+  private openNewPostModal(): void {
+    new NewPostModal(this.app, (form) => {
+      void this.createNewPost(form);
+    }).open();
+  }
+
+  private async createNewPost(form: NewPostForm): Promise<void> {
+    try {
+      const file = await createPostNote(
+        this.app,
+        this.settings.newPostFolder,
+        form,
+      );
+      await this.openVaultFile(file);
+      new Notice(`已创建《${form.title}》，属性已准备好。`, 5000);
+    } catch (error) {
+      console.error("Flare Stack Blog create post failed", error);
+      new Notice(`创建失败：${describeApiError(error)}`, 8000);
     }
   }
 

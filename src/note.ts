@@ -60,7 +60,7 @@ export function stringList(value: unknown): string[] {
   for (const item of values) {
     const raw = stringValue(item);
     if (!raw) continue;
-    for (const part of raw.split(",")) {
+    for (const part of raw.split(/[,，]/)) {
       const name = part.trim().replace(/^#/, "");
       if (!name) continue;
       const key = name.toLocaleLowerCase();

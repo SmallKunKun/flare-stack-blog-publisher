@@ -8,17 +8,19 @@ import type { BlogApi } from "./api/client";
 import type { AdminPost, AdminPostListItem } from "./api/types";
 import { mapOutsideCode } from "./markdown-code";
 import { numberValue, parseNote } from "./note";
+import {
+  ensureFolder,
+  normalizeFolder,
+  parentFolder,
+  safeName,
+  writeNote,
+} from "./vault-paths";
 
 /**
  * The folder that holds one subfolder per pulled post.
  */
 export function normalizePullFolder(value: string): string {
-  const parts = (value || "")
-    .replace(/\\/g, "/")
-    .split("/")
-    .map((part) => part.trim())
-    .filter((part) => part.length > 0 && part !== "." && part !== "..");
-  return parts.length > 0 ? parts.join("/") : "FlareStackBlog";
+  return normalizeFolder(value, "FlareStackBlog");
 }
 
 export async function localPostIds(
@@ -171,52 +173,6 @@ async function readFrontmatter(
   } catch {
     return undefined;
   }
-}
-
-async function ensureFolder(app: App, folder: string): Promise<void> {
-  if (!folder) return;
-  let current = "";
-  for (const part of folder.split("/")) {
-    current = current ? `${current}/${part}` : part;
-    const existing = app.vault.getAbstractFileByPath(current);
-    if (existing instanceof TFile) {
-      throw new Error(`路径被同名文件占用：${current}`);
-    }
-    if (!existing) await app.vault.createFolder(current);
-  }
-}
-
-async function writeNote(
-  app: App,
-  path: string,
-  content: string,
-): Promise<TFile> {
-  const existing = app.vault.getAbstractFileByPath(path);
-  if (existing instanceof TFile) {
-    await app.vault.modify(existing, content);
-    return existing;
-  }
-  if (existing) throw new Error(`路径被文件夹占用：${path}`);
-  return app.vault.create(path, content);
-}
-
-function parentFolder(path: string): string {
-  const parts = path.split("/");
-  parts.pop();
-  return parts.join("/");
-}
-
-function safeName(value: string, fallback: string): string {
-  const cleaned = value
-    .normalize("NFKC")
-    .replace(/[\u0000-\u001f\u007f\\/:*?"<>|#^\[\]]/g, "-")
-    .replace(/\s+/g, " ")
-    .trim()
-    .replace(/^\.+/, "")
-    .replace(/[. ]+$/, "")
-    .slice(0, 80)
-    .trim();
-  return cleaned || fallback;
 }
 
 /**
