@@ -255,3 +255,8 @@ body:not(.fsb-show-internal) .metadata-property[data-property-key^="fsb_"] {
   min-height: 96px;
   resize: vertical;
 }
+
+.fsb-new-post-modal input,
+.fsb-new-post-modal textarea {
+  font-size: var(--font-ui-medium);
+}

@@ -76,13 +76,6 @@ export class NewPostModal extends Modal {
   onOpen(): void {
     this.modalEl.addClass("fsb-new-post-modal");
     this.titleEl.setText(this.mode === "edit" ? "文章信息" : "新建文章");
-    this.contentEl.createEl("p", {
-      text:
-        this.mode === "edit"
-          ? "改完点保存，会写回当前笔记的属性。"
-          : "属性会写进 frontmatter，建好直接写正文。",
-      cls: "fsb-new-post-hint",
-    });
 
     new Setting(this.contentEl)
       .setName("标题")
@@ -138,7 +131,7 @@ export class NewPostModal extends Modal {
       .addText((text) =>
         text
           .setValue(this.slug)
-          .setPlaceholder("custom-url-slug")
+          .setPlaceholder("文章链接")
           .onChange((value) => {
             this.slug = value;
           }),
@@ -146,7 +139,7 @@ export class NewPostModal extends Modal {
 
     new Setting(this.contentEl)
       .setName("日期")
-      .setDesc("北京时间，留空就不填")
+      .setDesc("留空自动生成")
       .addText((text) => {
         text.inputEl.type = "datetime-local";
         text.setValue(this.publishedAt).onChange((value) => {
@@ -156,11 +149,11 @@ export class NewPostModal extends Modal {
 
     const summarySetting = new Setting(this.contentEl)
       .setName("摘要")
-      .setDesc("选填，显示在列表和搜索里")
+      .setDesc("选填")
       .addTextArea((text) => {
         text
           .setValue(this.summary)
-          .setPlaceholder("写点摘要…")
+          .setPlaceholder("文章摘要")
           .onChange((value) => {
             this.summary = value;
           });
