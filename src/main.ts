@@ -145,7 +145,7 @@ export default class FlareStackBlogPublisher extends Plugin {
       name: "打开博客文章",
       checkCallback: (checking) => {
         const file = this.activeMarkdownFile();
-        if (!file) return false;
+        if (!file || !this.hasPublishedLink(file)) return false;
         if (!checking) void this.openPost(file);
         return true;
       },
@@ -190,6 +190,11 @@ export default class FlareStackBlogPublisher extends Plugin {
     const file = this.app.workspace.getActiveFile();
     if (!file || file.extension !== "md") return null;
     return file;
+  }
+
+  private hasPublishedLink(file: TFile): boolean {
+    const frontmatter = this.app.metadataCache.getFileCache(file)?.frontmatter;
+    return Boolean(stringValue(frontmatter?.fsb_url));
   }
 
   private publishActiveChoice(): void {
@@ -281,6 +286,7 @@ export default class FlareStackBlogPublisher extends Plugin {
       item
         .setTitle("打开博客文章")
         .setIcon("external-link")
+        .setDisabled(!this.hasPublishedLink(file))
         .onClick(() => void this.openPost(file)),
     );
     menu.addItem((item) =>
@@ -299,6 +305,7 @@ export default class FlareStackBlogPublisher extends Plugin {
 
     const file = this.activeMarkdownFile();
     const noFile = file === null;
+    const canOpen = file !== null && this.hasPublishedLink(file);
     const menu = new Menu();
 
     menu.addItem((item) =>
@@ -335,7 +342,7 @@ export default class FlareStackBlogPublisher extends Plugin {
       item
         .setTitle("打开文章")
         .setIcon("external-link")
-        .setDisabled(noFile)
+        .setDisabled(!canOpen)
         .onClick(() => {
           if (file) void this.openPost(file);
         }),
@@ -521,25 +528,25 @@ export default class FlareStackBlogPublisher extends Plugin {
       const api = this.createApi();
       const raw = await this.app.vault.read(file);
       const note = parseNote(raw);
+      const postId = notePostId(note.frontmatter);
+      if (postId !== undefined) {
+        const post = await api.getPost(postId);
+        const url = postUrlOf(api, post);
+        if (!url) {
+          new Notice("文章还没发布，没有公开地址");
+          return;
+        }
+        window.open(url, "_blank");
+        return;
+      }
+
       const storedUrl = stringValue(note.frontmatter.fsb_url);
       if (storedUrl && isHttpUrl(storedUrl)) {
         window.open(storedUrl, "_blank");
         return;
       }
 
-      const postId = notePostId(note.frontmatter);
-      if (postId === undefined) {
-        new Notice("这篇还没关联博客文章，先发布一次");
-        return;
-      }
-
-      const post = await api.getPost(postId);
-      const url = postUrlOf(api, post);
-      if (!url) {
-        new Notice("文章还没发布，没有公开地址");
-        return;
-      }
-      window.open(url, "_blank");
+      new Notice("这篇还没关联博客文章，先发布一次");
     } catch (error) {
       console.error("Flare Stack Blog open post failed", error);
       new Notice(`打开失败：${describeApiError(error)}`, 8000);
