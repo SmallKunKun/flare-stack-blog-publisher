@@ -1,7 +1,11 @@
 {
-  "name": "obsidian-flare-stack-blog-publisher",
+  "name": "flare-stack-blog-publisher",
   "version": "0.1.0",
   "description": "Publish notes from Obsidian to Flare Stack Blog",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SmallKunKun/flare-stack-blog-publisher.git"
+  },
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs",

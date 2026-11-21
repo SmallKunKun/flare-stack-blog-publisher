@@ -103,8 +103,8 @@ User-Agent，以兼容可能启用的 Cloudflare WAF。
 ### 方式一：安装到本机 vault（推荐）
 
 ```bash
-git clone <this-repository>
-cd obsidian-flare-stack-blog
+git clone https://github.com/SmallKunKun/flare-stack-blog-publisher.git
+cd flare-stack-blog-publisher
 npm install
 
 # 自动查找 vault；多个 vault 时会提示选择
@@ -140,7 +140,7 @@ GitHub Actions 会构建并创建 Release，附带 `main.js`、`manifest.json`�
 在 Obsidian 安装 **BRAT**，打开 **Add Beta Plugin**，输入：
 
 ```text
-你的GitHub用户名/obsidian-flare-stack-blog
+SmallKunKun/flare-stack-blog-publisher
 ```
 
 仓库需要为公开仓库。后续发布新版本后，BRAT 会自动更新。
