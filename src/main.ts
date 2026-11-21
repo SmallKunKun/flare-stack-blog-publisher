@@ -232,17 +232,34 @@ export default class FlareStackBlogPublisher extends Plugin {
     for (const leaf of this.app.workspace.getLeavesOfType("markdown")) {
       const view = leaf.view;
       if (!(view instanceof MarkdownView)) continue;
-      if (view.containerEl.querySelector(".fsb-publish-action")) continue;
 
-      try {
-        const action = view.addAction("upload", "发布文章", () => {
-          if (view.file) this.publishChoice(view.file);
-          else this.publishActiveChoice();
-        });
-        action.addClass("fsb-publish-action");
-        this.viewActions.add(action);
-      } catch (error) {
-        console.error("Flare Stack Blog: could not add view action", error);
+      if (!view.containerEl.querySelector(".fsb-publish-action")) {
+        try {
+          const action = view.addAction("upload", "发布文章", () => {
+            if (view.file) this.publishChoice(view.file);
+            else this.publishActiveChoice();
+          });
+          action.addClass("fsb-publish-action");
+          this.viewActions.add(action);
+        } catch (error) {
+          console.error("Flare Stack Blog: could not add view action", error);
+        }
+      }
+
+      if (!view.containerEl.querySelector(".fsb-info-action")) {
+        try {
+          const action = view.addAction("info", "文章信息", () => {
+            if (view.file) void this.openArticleInfoModal(view.file);
+            else new Notice("先打开一篇 Markdown 笔记。");
+          });
+          action.addClass("fsb-info-action");
+          this.viewActions.add(action);
+        } catch (error) {
+          console.error(
+            "Flare Stack Blog: could not add article info action",
+            error,
+          );
+        }
       }
     }
   }
