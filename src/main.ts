@@ -69,21 +69,22 @@ export default class FlareStackBlogPublisher extends Plugin {
 
     // Obsidian adds new ribbon items above earlier ones, so register them in
     // reverse to show: 新建文章, 拉取文章, 文章信息, 发布文章.
-    this.addRibbonIcon("upload", "发布文章", () => {
-      this.publishActiveChoice();
-    });
-
-    this.addRibbonIcon("info", "文章信息", () => {
-      this.openActiveArticleInfo();
-    });
-
-    this.addRibbonIcon("download", "拉取文章", () => {
-      void this.openPullModal();
-    });
-
-    this.addRibbonIcon("plus", "新建文章", () => {
+    // Obsidian inserts plugin ribbon buttons in an implementation-defined
+    // order, so keep the elements and arrange them explicitly afterwards.
+    const newPostIcon = this.addRibbonIcon("plus", "新建文章", () => {
       this.openNewPostModal();
     });
+    const pullIcon = this.addRibbonIcon("download", "拉取文章", () => {
+      void this.openPullModal();
+    });
+    const infoIcon = this.addRibbonIcon("info", "文章信息", () => {
+      this.openActiveArticleInfo();
+    });
+    const publishIcon = this.addRibbonIcon("upload", "发布文章", () => {
+      this.publishActiveChoice();
+    });
+    const ribbonIcons = [newPostIcon, pullIcon, infoIcon, publishIcon];
+    window.setTimeout(() => this.arrangeRibbon(ribbonIcons), 0);
 
     this.registerEvent(
       this.app.workspace.on("file-menu", (menu, file) => {
@@ -101,9 +102,15 @@ export default class FlareStackBlogPublisher extends Plugin {
       }),
     );
 
-    this.app.workspace.onLayoutReady(() => this.addViewActions());
+    this.app.workspace.onLayoutReady(() => {
+      this.arrangeRibbon(ribbonIcons);
+      this.addViewActions();
+    });
     this.registerEvent(
-      this.app.workspace.on("layout-change", () => this.addViewActions()),
+      this.app.workspace.on("layout-change", () => {
+        this.addViewActions();
+        this.arrangeRibbon(ribbonIcons);
+      }),
     );
 
     this.addCommand({
@@ -202,6 +209,15 @@ export default class FlareStackBlogPublisher extends Plugin {
       return;
     }
     void this.openArticleInfoModal(file);
+  }
+
+  private arrangeRibbon(icons: HTMLElement[]): void {
+    const parent = icons[0]?.parentElement;
+    if (!parent) return;
+    const reversed =
+      getComputedStyle(parent).flexDirection === "column-reverse";
+    const ordered = reversed ? [...icons].reverse() : icons;
+    for (const icon of ordered) parent.appendChild(icon);
   }
 
   private publishChoice(file: TFile): void {
