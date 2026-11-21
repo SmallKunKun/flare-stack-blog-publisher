@@ -2,9 +2,9 @@
 
 # Flare Stack Blog Publisher
 
-**在 Obsidian 中编写 Markdown，直接发布到 Flare Stack Blog**
+**Write Markdown in Obsidian and publish directly to Flare Stack Blog**
 
-发布与草稿 · 云端文章同步 · 媒体库 · 中文笔记属性
+Publish & drafts · Cloud post sync · Media library · Chinese note properties
 
 [![Obsidian](https://img.shields.io/badge/Obsidian-1.5.7%2B-7C3AED?logo=obsidian&logoColor=white&style=flat-square)](https://obsidian.md)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white&style=flat-square)](https://www.typescriptlang.org)
@@ -19,7 +19,7 @@
 
 ## 📖 简介
 
-Flare Stack Blog Publisher 通过 Admin API 将 Obsidian 笔记发布到
+Flare Stack Blog Publisher 通过 API Key 将 Obsidian 笔记发布到
 [Flare Stack Blog](https://github.com/du2333/flare-stack-blog)。插件支持新建文章、发布与草稿、
 取消发布、删除文章、拉取云端文章和媒体库管理，不修改博客代码，也不依赖博客的部署方式。
 
@@ -87,7 +87,7 @@ Flare Stack Blog Publisher
 Flare Stack Blog
 ```
 
-插件使用 Admin API Key 通过 `x-api-key` 请求头访问博客 API，并在每个请求中携带浏览器
+插件使用 API Key 通过 `x-api-key` 请求头访问博客 API，并在每个请求中携带浏览器
 User-Agent，以兼容可能启用的 Cloudflare WAF。
 
 ## 🚀 安装
@@ -98,7 +98,7 @@ User-Agent，以兼容可能启用的 Cloudflare WAF。
 | :--- | :--- |
 | Obsidian | 1.5.7 或更高版本 |
 | Node.js | 20 或更高版本，仅从源码构建时需要 |
-| Flare Stack Blog | 已部署并启用 Admin API |
+| Flare Stack Blog | 已部署并启用 API Key |
 
 ### 方式一：安装到本机 vault（推荐）
 
@@ -396,7 +396,7 @@ fsb_cover_media_id: 45
 ├── scripts/
 │   └── install.mjs             # 一键安装到 vault
 ├── src/
-│   ├── api/                    # Admin API 客户端与类型
+│   ├── api/                    # API Key 客户端与类型
 │   ├── main.ts                 # 插件入口、命令、菜单
 │   ├── settings.ts             # 设置页
 │   ├── note.ts                 # frontmatter 解析
@@ -431,7 +431,7 @@ fsb_cover_media_id: 45
 
 ## 🙏 致谢
 
-- **[Flare Stack Blog](https://github.com/du2333/flare-stack-blog)**：博客后端、内容模型与 Admin API。
+- **[Flare Stack Blog](https://github.com/du2333/flare-stack-blog)**：博客后端、内容模型与 API。
 - **[Obsidian](https://obsidian.md)**：插件运行环境与 API。
 
 ## 📄 许可
