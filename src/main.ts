@@ -6,10 +6,11 @@ import {
   TFile,
 } from "obsidian";
 import { BlogApi, normalizeSiteUrl } from "./api/client";
-import { describeApiError } from "./api/errors";
+import { BlogApiError, describeApiError } from "./api/errors";
 import type { AdminPostListItem } from "./api/types";
 import { confirmAction } from "./confirm-modal";
 import { createPostNote, type NewPostForm } from "./create-post";
+import { DeletePostModal } from "./delete-post-modal";
 import { MediaLibraryModal } from "./media-library";
 import { NewPostModal } from "./new-post-modal";
 import {
@@ -45,6 +46,7 @@ import {
   PublisherSettingTab,
   type PublisherSettings,
 } from "./settings";
+import { normalizeFolder } from "./vault-paths";
 
 export default class FlareStackBlogPublisher extends Plugin {
   settings: PublisherSettings = { ...DEFAULT_SETTINGS };
@@ -174,6 +176,17 @@ export default class FlareStackBlogPublisher extends Plugin {
     });
 
     this.addCommand({
+      id: "delete-post",
+      name: "删除文章",
+      checkCallback: (checking) => {
+        const file = this.activeMarkdownFile();
+        if (!file || !this.isBlogArticle(file)) return false;
+        if (!checking) void this.openDeletePostModal(file);
+        return true;
+      },
+    });
+
+    this.addCommand({
       id: "pull-post",
       name: "拉取云端文章",
       callback: () => void this.openPullModal(),
@@ -231,6 +244,21 @@ export default class FlareStackBlogPublisher extends Plugin {
       Boolean(stringValue(frontmatter?.fsb_url)) &&
       numberValue(frontmatter?.fsb_post_id) !== undefined
     );
+  }
+
+  private isBlogArticle(file: TFile): boolean {
+    const frontmatter = this.app.metadataCache.getFileCache(file)?.frontmatter;
+    if (numberValue(frontmatter?.fsb_post_id) !== undefined) return true;
+    if (stringValue(frontmatter?.fsb_url)) return true;
+
+    const folders = [
+      normalizeFolder(this.settings.pullFolder, "FlareStackBlog"),
+      normalizeFolder(
+        this.settings.newPostFolder,
+        "FlareStackBlog/Drafts",
+      ),
+    ];
+    return folders.some((folder) => file.path.startsWith(`${folder}/`));
   }
 
   private publishActiveChoice(): void {
@@ -353,6 +381,13 @@ export default class FlareStackBlogPublisher extends Plugin {
         .setIcon("info")
         .onClick(() => void this.openArticleInfoModal(file)),
     );
+    menu.addItem((item) =>
+      item
+        .setTitle("删除文章")
+        .setIcon("trash-2")
+        .setDisabled(!this.isBlogArticle(file))
+        .onClick(() => void this.openDeletePostModal(file)),
+    );
   }
 
   private onStatusBarClick(event: MouseEvent): void {
@@ -365,6 +400,7 @@ export default class FlareStackBlogPublisher extends Plugin {
     const noFile = file === null;
     const canOpen = file !== null && this.hasPublishedLink(file);
     const canUnpublish = file !== null && this.canUnpublish(file);
+    const canDelete = file !== null && this.isBlogArticle(file);
     const menu = new Menu();
 
     menu.addItem((item) =>
@@ -419,6 +455,15 @@ export default class FlareStackBlogPublisher extends Plugin {
         .setDisabled(!canOpen)
         .onClick(() => {
           if (file) void this.openPost(file);
+        }),
+    );
+    menu.addItem((item) =>
+      item
+        .setTitle("删除文章")
+        .setIcon("trash-2")
+        .setDisabled(!canDelete)
+        .onClick(() => {
+          if (file) void this.openDeletePostModal(file);
         }),
     );
     menu.addSeparator();
@@ -670,6 +715,78 @@ export default class FlareStackBlogPublisher extends Plugin {
     } catch (error) {
       console.error("Flare Stack Blog unpublish failed", error);
       new Notice(`取消发布失败：${describeApiError(error)}`, 10000);
+    }
+  }
+
+  private async openDeletePostModal(file: TFile): Promise<void> {
+    let postId: number | undefined;
+    let title = file.basename;
+
+    try {
+      const raw = await this.app.vault.read(file);
+      const note = parseNote(raw);
+      postId = notePostId(note.frontmatter);
+      title = noteTitle(note.frontmatter, file.basename);
+    } catch (error) {
+      console.error("Flare Stack Blog read note failed", error);
+      new Notice(`读取笔记失败：${describeApiError(error)}`, 8000);
+      return;
+    }
+
+    new DeletePostModal(
+      this.app,
+      title,
+      postId !== undefined,
+      () => void this.deleteArticle(file, title, postId),
+    ).open();
+  }
+
+  private async deleteArticle(
+    file: TFile,
+    title: string,
+    postId: number | undefined,
+  ): Promise<void> {
+    if (postId !== undefined && !this.isConfigured()) {
+      new Notice("还没填博客地址或 API Key");
+      this.openPluginSettings();
+      return;
+    }
+
+    let remoteState = "none";
+
+    try {
+      if (postId !== undefined) {
+        const api = this.createApi();
+        new Notice("正在删除云端文章…");
+        try {
+          await api.deletePost(postId);
+          remoteState = "deleted";
+        } catch (error) {
+          if (!(error instanceof BlogApiError) || error.status !== 404) {
+            throw error;
+          }
+          remoteState = "missing";
+        }
+      }
+
+      new Notice("正在删除本地文件…");
+      await this.app.fileManager.trashFile(file);
+
+      if (remoteState === "deleted") {
+        new Notice(`已删除云端和本地：${title}`);
+      } else if (remoteState === "missing") {
+        new Notice(`云端已不存在，已删除本地：${title}`);
+      } else {
+        new Notice(`已删除本地：${title}`);
+      }
+    } catch (error) {
+      console.error("Flare Stack Blog delete post failed", error);
+      new Notice(
+        remoteState === "deleted"
+          ? `云端已删除，本地删除失败：${describeApiError(error)}`
+          : `删除失败：${describeApiError(error)}`,
+        10000,
+      );
     }
   }
 

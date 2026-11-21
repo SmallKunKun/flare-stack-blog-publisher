@@ -103,6 +103,10 @@ export class BlogApi {
     return this.request<WriteResult>("POST", `/admin/posts/${id}/unpublish`);
   }
 
+  async deletePost(id: number): Promise<DeleteResult> {
+    return this.request<DeleteResult>("DELETE", `/admin/posts/${id}`);
+  }
+
   async setPostTags(
     postId: number,
     tagIds: number[],
