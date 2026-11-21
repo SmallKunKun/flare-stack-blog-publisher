@@ -54,8 +54,8 @@ export interface AdminPost {
   publishedAt: string | null;
   createdAt: string;
   updatedAt: string;
-  category: CategoryRef | null;
-  tags: TagRef[];
+  categoryId: number | null;
+  tags?: TagRef[];
   published: PublishedVersion | null;
 }
 

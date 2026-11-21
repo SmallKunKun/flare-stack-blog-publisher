@@ -64,7 +64,7 @@ export async function pullPostToLocal(
   existingFile?: TFile | null,
 ): Promise<TFile> {
   const post = await api.getPost(item.id);
-  const content = await buildNoteContent(api, post);
+  const content = await buildNoteContent(api, post, item);
   const path = existingFile
     ? existingFile.path
     : chooseTargetPath(app, pullFolder, post);
@@ -73,17 +73,24 @@ export async function pullPostToLocal(
   return writeNote(app, path, content);
 }
 
-async function buildNoteContent(api: BlogApi, post: AdminPost): Promise<string> {
+async function buildNoteContent(
+  api: BlogApi,
+  post: AdminPost,
+  item: AdminPostListItem,
+): Promise<string> {
   const publicSlug =
     post.publicSlug ?? (post.status === "published" ? post.slug : null);
   const publishedAt = post.publishedAt ?? post.published?.publishedAt ?? null;
+  // The single-post response only carries categoryId. The list item carries
+  // the category name, and the draft's tags.
+  const tags = post.tags && post.tags.length > 0 ? post.tags : item.tags;
   const frontmatter: Record<string, unknown> = {
     title: post.title,
     ...(post.summary ? { summary: post.summary } : {}),
     ...(post.slug ? { slug: post.slug } : {}),
     ...(publishedAt ? { publishedAt: toBeijingIso(publishedAt) } : {}),
-    category: post.category?.name ?? "",
-    tags: post.tags.map((tag) => tag.name),
+    category: item.category?.name ?? "",
+    tags: tags.map((tag) => tag.name),
     fsb_post_id: post.id,
     ...(publicSlug
       ? {
