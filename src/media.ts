@@ -6,7 +6,7 @@ import { numberValue } from "./note";
 import { PROPERTY_KEYS } from "./properties";
 import { imageUuidName } from "./uuid";
 
-const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+export const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 
 const MIME_TYPES: Record<string, string> = {
   png: "image/png",
@@ -18,6 +18,11 @@ const MIME_TYPES: Record<string, string> = {
 };
 
 const IMAGE_EXTENSIONS = new Set(Object.keys(MIME_TYPES));
+
+export function imageMimeType(fileName: string): string | undefined {
+  const extension = fileName.split(".").pop()?.toLocaleLowerCase() ?? "";
+  return MIME_TYPES[extension];
+}
 
 interface BodyUploadResult {
   body: string;
@@ -179,8 +184,7 @@ async function uploadFile(
   const cached = cache.get(file.path);
   if (cached) return cached;
 
-  const extension = file.extension.toLocaleLowerCase();
-  const mimeType = MIME_TYPES[extension];
+  const mimeType = imageMimeType(file.name);
   if (!mimeType) {
     throw new Error(`不支持的图片格式：${file.name}`);
   }
@@ -188,23 +192,39 @@ async function uploadFile(
     throw new Error(`图片超过 10 MB：${file.name}`);
   }
 
-  let bytes: ArrayBuffer | undefined;
-  let uploadName = file.name;
-  if (options.renameToUuid) {
-    bytes = await file.vault.readBinary(file);
-    uploadName = await imageUuidName(file.name, bytes);
-  }
-
-  const existing = await findExistingMedia(api, uploadName, file.stat.size);
-  if (existing) {
-    cache.set(file.path, existing);
-    return existing;
-  }
-
-  if (!bytes) bytes = await file.vault.readBinary(file);
-  const media = await api.uploadMedia(uploadName, mimeType, bytes);
+  const bytes = await file.vault.readBinary(file);
+  const media = await uploadImageBytes(
+    api,
+    file.name,
+    mimeType,
+    bytes,
+    options,
+  );
   cache.set(file.path, media);
   return media;
+}
+
+export async function uploadImageBytes(
+  api: BlogApi,
+  fileName: string,
+  mimeType: string,
+  bytes: ArrayBuffer,
+  options: MediaUploadOptions,
+): Promise<Media> {
+  if (bytes.byteLength > MAX_IMAGE_BYTES) {
+    throw new Error(`图片超过 10 MB：${fileName}`);
+  }
+
+  const uploadName = options.renameToUuid
+    ? await imageUuidName(fileName, bytes)
+    : fileName;
+  const existing = await findExistingMedia(
+    api,
+    uploadName,
+    bytes.byteLength,
+  );
+  if (existing) return existing;
+  return api.uploadMedia(uploadName, mimeType, bytes);
 }
 
 async function findExistingMedia(
@@ -224,14 +244,6 @@ async function findExistingMedia(
     // A failed lookup should not stop an upload; the upload may still work.
     return null;
   }
-}
-
-export async function uploadVaultImage(
-  api: BlogApi,
-  file: TFile,
-  options: MediaUploadOptions,
-): Promise<Media> {
-  return uploadFile(api, file, new Map(), options);
 }
 
 function isImagePath(value: string): boolean {

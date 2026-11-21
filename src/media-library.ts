@@ -4,14 +4,16 @@ import {
   Modal,
   Notice,
   TextComponent,
-  TFile,
   type App,
 } from "obsidian";
 import type { BlogApi } from "./api/client";
 import { describeApiError } from "./api/errors";
 import type { Media } from "./api/types";
-import { ImagePickerModal } from "./image-picker";
-import { uploadVaultImage } from "./media";
+import {
+  MAX_IMAGE_BYTES,
+  imageMimeType,
+  uploadImageBytes,
+} from "./media";
 import { absoluteMediaUrl } from "./media-url";
 import { formatBeijingTime } from "./time";
 
@@ -225,19 +227,44 @@ export class MediaLibraryModal extends Modal {
   }
 
   private pickLocalImage(): void {
-    new ImagePickerModal(this.app, (file) => {
-      void this.upload(file);
-    }).open();
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept =
+      "image/png,image/jpeg,image/webp,image/gif,image/svg+xml";
+    input.style.display = "none";
+    input.addEventListener("change", () => {
+      const file = input.files?.[0];
+      input.remove();
+      if (file) void this.upload(file);
+    });
+    input.addEventListener("cancel", () => input.remove());
+    document.body.appendChild(input);
+    input.click();
   }
 
-  private async upload(file: TFile): Promise<void> {
+  private async upload(file: File): Promise<void> {
+    const mimeType = imageMimeType(file.name);
+    if (!mimeType) {
+      new Notice("不支持的图片格式");
+      return;
+    }
+    if (file.size > MAX_IMAGE_BYTES) {
+      new Notice("图片超过 10 MB");
+      return;
+    }
+
     this.uploadButton?.setDisabled(true);
     new Notice(`正在上传：${file.name}`);
 
     try {
-      const media = await uploadVaultImage(this.api, file, {
-        renameToUuid: this.renameToUuid,
-      });
+      const bytes = await file.arrayBuffer();
+      const media = await uploadImageBytes(
+        this.api,
+        file.name,
+        mimeType,
+        bytes,
+        { renameToUuid: this.renameToUuid },
+      );
       new Notice(`已上传：${media.fileName}`);
 
       if (this.closed) return;
