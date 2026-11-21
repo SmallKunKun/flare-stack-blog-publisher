@@ -178,10 +178,16 @@ export class NewPostModal extends Modal {
     this.contentEl.empty();
   }
 
-  private taxonomySummary(): string {
+  private taxonomySummary(): DocumentFragment {
     const category = this.category.trim() || "不设置";
     const tags = this.tags.length > 0 ? this.tags.join("、") : "无";
-    return `分类：${category} · 标签：${tags}`;
+    const fragment = document.createDocumentFragment();
+    const categoryLine = document.createElement("div");
+    categoryLine.textContent = `分类：${category}`;
+    const tagsLine = document.createElement("div");
+    tagsLine.textContent = `标签：${tags}`;
+    fragment.append(categoryLine, tagsLine);
+    return fragment;
   }
 
   private pickTaxonomy(): void {
