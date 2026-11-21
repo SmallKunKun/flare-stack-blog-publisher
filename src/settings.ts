@@ -60,7 +60,7 @@ export class PublisherSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName("API Key")
       .setDesc(
-        "博客后台的 API Key 页面生成",
+        "博客后台 API Key 页面生成",
       )
       .addText((text) => {
         text.inputEl.type = "password";
@@ -75,7 +75,7 @@ export class PublisherSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("测试连接")
-      .setDesc("读取一次文章列表，检查地址和 Key 是否正确")
+      .setDesc("读取一次文章列表，校验地址与 Key")
       .addButton((button) =>
         button.setButtonText("测试连接").onClick(async () => {
           button.setDisabled(true);
@@ -97,11 +97,11 @@ export class PublisherSettingTab extends PluginSettingTab {
         }),
       );
 
-    containerEl.createEl("h3", { text: "发布" });
+    containerEl.createEl("h3", { text: "配置" });
 
     new Setting(containerEl)
-      .setName("拉取目录")
-      .setDesc("拉取文章的存放目录，一篇一个文件夹")
+      .setName("拉取文章目录")
+      .setDesc("拉取文章存放位置，每篇独立文件夹")
       .addText((text) =>
         text
           .setPlaceholder("FlareStackBlog")
@@ -114,7 +114,7 @@ export class PublisherSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("新建文章目录")
-      .setDesc("新建文章的存放位置，一篇一个文件夹")
+      .setDesc("新建文章存放位置，每篇独立文件夹")
       .addText((text) =>
         text
           .setPlaceholder("FlareStackBlog/Drafts")
@@ -127,7 +127,7 @@ export class PublisherSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("自动填写发布时间")
-      .setDesc("根据笔记的创建时间生成发布时间")
+      .setDesc("按笔记创建时间生成发布时间")
       .addToggle((toggle) =>
         toggle
           .setValue(this.plugin.settings.autoFillPublishedAt)
@@ -139,7 +139,7 @@ export class PublisherSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("自动创建分类和标签")
-      .setDesc("分类或标签不存在时自动建，关掉就只用现有的")
+      .setDesc("不存在时自动创建，关闭后仅使用现有项")
       .addToggle((toggle) =>
         toggle
           .setValue(this.plugin.settings.autoCreateTaxonomy)
@@ -151,7 +151,7 @@ export class PublisherSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("上传本地图片")
-      .setDesc("发布时把本地图片上传到媒体库，并换成博客地址")
+      .setDesc("发布时上传本地图片并替换为URL")
       .addToggle((toggle) =>
         toggle
           .setValue(this.plugin.settings.uploadLocalImages)
@@ -164,7 +164,7 @@ export class PublisherSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName("UUID 文件名")
       .setDesc(
-        "上传图片时使用 UUID 文件名，同一张图复用同一个名字",
+        "上传图片使用 UUID 文件名，同图复用同名",
       )
       .addToggle((toggle) =>
         toggle
@@ -177,7 +177,7 @@ export class PublisherSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("转换双链")
-      .setDesc("把 [[笔记]] 换成博客链接，没发布的笔记只保留文字")
+      .setDesc("[[笔记]]转换为博客链接，未发布笔记仅保留文字")
       .addToggle((toggle) =>
         toggle
           .setValue(this.plugin.settings.convertWikiLinks)
@@ -202,7 +202,7 @@ export class PublisherSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName("显示内部字段")
       .setDesc(
-        "在笔记属性里显示内部字段",
+        "在笔记属性中显示内部字段",
       )
       .addToggle((toggle) =>
         toggle
@@ -212,8 +212,5 @@ export class PublisherSettingTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           }),
       );
-
-    const privacy = containerEl.createEl("p", { cls: "setting-item-description" });
-    privacy.setText("只连你填的博客地址，代码里没有站点、Key 或账号信息");
   }
 }

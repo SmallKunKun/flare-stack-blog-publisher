@@ -66,7 +66,7 @@ class PublishActionModal extends Modal {
 
     const list = this.contentEl.createDiv({ cls: "fsb-confirm-list" });
     this.row(list, "标题", this.details.title);
-    this.row(list, "分类", this.details.category || "不设置");
+    this.row(list, "分类", this.details.category || "无");
     this.row(
       list,
       "标签",

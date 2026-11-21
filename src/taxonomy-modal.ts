@@ -48,11 +48,11 @@ export class TaxonomyModal extends Modal {
 
     new Setting(this.contentEl)
       .setName("分类")
-      .setDesc("单选，可以直接输入新分类")
+      .setDesc("单选")
       .addText((text) => {
         this.categoryInput = text.inputEl;
         text
-          .setPlaceholder("不设置")
+          .setPlaceholder("输入创建新分类")
           .setValue(this.category)
           .onChange((value) => {
             this.category = value;
@@ -69,7 +69,13 @@ export class TaxonomyModal extends Modal {
           },
         );
         text.inputEl.addEventListener("click", () => {
-          this.categorySuggest?.open();
+          const query = text.inputEl.value.trim().toLowerCase();
+          const hasMatch = this.categories.some(
+            (category) =>
+              !query || category.name.toLowerCase().includes(query),
+          );
+          if (hasMatch) this.categorySuggest?.open();
+          else this.categorySuggest?.close();
         });
       });
 

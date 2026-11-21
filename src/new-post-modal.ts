@@ -175,7 +175,7 @@ export class NewPostModal extends Modal {
   }
 
   private taxonomySummary(): DocumentFragment {
-    const category = this.category.trim() || "不设置";
+    const category = this.category.trim() || "无";
     const tags = this.tags.length > 0 ? this.tags.join("、") : "无";
     const fragment = document.createDocumentFragment();
     const categoryLine = document.createElement("div");
