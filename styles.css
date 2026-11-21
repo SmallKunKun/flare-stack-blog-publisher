@@ -151,11 +151,6 @@
   width: min(520px, 90vw);
 }
 
-.fsb-confirm-hint {
-  color: var(--text-muted);
-  margin-top: 0;
-}
-
 .fsb-confirm-list {
   display: flex;
   flex-direction: column;

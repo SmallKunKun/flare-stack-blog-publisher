@@ -54,18 +54,8 @@ class PublishActionModal extends Modal {
 
     if (this.allowChoice) {
       this.titleEl.setText("保存还是发布？");
-      this.contentEl.createEl("p", {
-        text: "保存草稿不会公开，发布后会直接上线",
-        cls: "fsb-confirm-hint",
-      });
     } else {
       this.titleEl.setText(publishing ? "确认发布" : "确认保存草稿");
-      this.contentEl.createEl("p", {
-        text: publishing
-          ? "发布后文章会公开到博客"
-          : "只保存到博客草稿，不会公开",
-        cls: "fsb-confirm-hint",
-      });
     }
 
     this.renderCover();
