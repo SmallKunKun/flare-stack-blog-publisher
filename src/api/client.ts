@@ -7,6 +7,7 @@ import type {
   CategoryOption,
   CreatePostData,
   CreatePostResult,
+  DeleteResult,
   Media,
   MediaListPage,
   SetTagsResult,
@@ -122,6 +123,10 @@ export class BlogApi {
     return this.request<TagRef>("POST", "/admin/tags", { body: { name } });
   }
 
+  async deleteTag(id: number): Promise<DeleteResult> {
+    return this.request<DeleteResult>("DELETE", `/admin/tags/${id}`);
+  }
+
   async listCategoryOptions(): Promise<CategoryOption[]> {
     return this.request<CategoryOption[]>("GET", "/admin/categories/options");
   }
@@ -138,6 +143,10 @@ export class BlogApi {
     return this.request<CategoryOption>("POST", "/admin/categories", {
       body: { name },
     });
+  }
+
+  async deleteCategory(id: number): Promise<DeleteResult> {
+    return this.request<DeleteResult>("DELETE", `/admin/categories/${id}`);
   }
 
   async uploadMedia(

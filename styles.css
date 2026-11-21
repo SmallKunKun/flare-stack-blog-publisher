@@ -192,3 +192,23 @@
 body:not(.fsb-show-internal) .metadata-property[data-property-key^="fsb_"] {
   display: none !important;
 }
+
+.fsb-taxonomy-chip-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.fsb-taxonomy-chip-delete {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0 4px;
+  font-size: var(--font-ui-small);
+  line-height: 1;
+}
+
+.fsb-taxonomy-chip-delete:hover {
+  color: var(--text-error);
+}

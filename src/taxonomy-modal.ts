@@ -1,6 +1,7 @@
 import {
   ButtonComponent,
   Modal,
+  Notice,
   Setting,
   TextComponent,
   type App,
@@ -8,6 +9,7 @@ import {
 import type { BlogApi } from "./api/client";
 import { describeApiError } from "./api/errors";
 import type { CategoryOption, TagRef } from "./api/types";
+import { confirmAction } from "./confirm-modal";
 
 export interface TaxonomyValue {
   category: string;
@@ -139,9 +141,7 @@ export class TaxonomyModal extends Modal {
 
       this.categories = categories;
       this.existingTags = tags;
-      for (const category of categories) {
-        this.categoryDatalist?.createEl("option", { value: category.name });
-      }
+      this.renderCategoryOptions();
       this.statusEl.setText(
         `已有 ${categories.length} 个分类，${tags.length} 个标签。`,
       );
@@ -154,6 +154,13 @@ export class TaxonomyModal extends Modal {
       );
       this.renderCategoryChips();
       this.renderTagChips();
+    }
+  }
+
+  private renderCategoryOptions(): void {
+    this.categoryDatalist?.empty();
+    for (const category of this.categories) {
+      this.categoryDatalist?.createEl("option", { value: category.name });
     }
   }
 
@@ -171,7 +178,10 @@ export class TaxonomyModal extends Modal {
 
     const current = this.category.trim().toLowerCase();
     for (const category of this.categories) {
-      const chip = this.categoryChipsEl.createEl("button", {
+      const wrap = this.categoryChipsEl.createSpan({
+        cls: "fsb-taxonomy-chip-wrap",
+      });
+      const chip = wrap.createEl("button", {
         text: category.name,
         cls: "fsb-taxonomy-chip",
       });
@@ -186,6 +196,43 @@ export class TaxonomyModal extends Modal {
         if (this.categoryInput) this.categoryInput.value = this.category;
         this.renderCategoryChips();
       });
+
+      if (this.api) {
+        const remove = wrap.createEl("button", {
+          text: "×",
+          cls: "fsb-taxonomy-chip-delete",
+        });
+        remove.setAttribute("aria-label", `删除分类 ${category.name}`);
+        remove.addEventListener("click", (event) => {
+          event.stopPropagation();
+          void this.deleteCategory(category);
+        });
+      }
+    }
+  }
+
+  private async deleteCategory(category: CategoryOption): Promise<void> {
+    const confirmed = await confirmAction(this.app, {
+      title: "删除分类",
+      message:
+        `删除「${category.name}」？所有用这个分类的文章都会失去分类，` +
+        "分类页面地址也会失效。笔记里如果还留着这个名字，发布或存草稿时可能会重新创建。",
+      confirmText: "删除分类",
+    });
+    if (!confirmed || !this.api) return;
+
+    try {
+      await this.api.deleteCategory(category.id);
+      this.categories = this.categories.filter((item) => item.id !== category.id);
+      if (this.category.trim().toLowerCase() === category.name.toLowerCase()) {
+        this.category = "";
+        if (this.categoryInput) this.categoryInput.value = "";
+      }
+      this.renderCategoryOptions();
+      this.renderCategoryChips();
+      new Notice("分类已删除。");
+    } catch (error) {
+      new Notice(`删除分类失败：${describeApiError(error)}`, 8000);
     }
   }
 
@@ -213,7 +260,10 @@ export class TaxonomyModal extends Modal {
     }
 
     for (const tag of tags) {
-      const chip = this.tagChipsEl.createEl("button", {
+      const wrap = this.tagChipsEl.createSpan({
+        cls: "fsb-taxonomy-chip-wrap",
+      });
+      const chip = wrap.createEl("button", {
         text: tag.name,
         cls: "fsb-taxonomy-chip",
       });
@@ -229,6 +279,43 @@ export class TaxonomyModal extends Modal {
         if (this.tagInput) this.tagInput.value = this.tagsText;
         this.renderTagChips();
       });
+
+      if (this.api) {
+        const remove = wrap.createEl("button", {
+          text: "×",
+          cls: "fsb-taxonomy-chip-delete",
+        });
+        remove.setAttribute("aria-label", `删除标签 ${tag.name}`);
+        remove.addEventListener("click", (event) => {
+          event.stopPropagation();
+          void this.deleteTag(tag);
+        });
+      }
+    }
+  }
+
+  private async deleteTag(tag: TagRef): Promise<void> {
+    const confirmed = await confirmAction(this.app, {
+      title: "删除标签",
+      message:
+        `删除「${tag.name}」？所有用这个标签的文章都会失去标签，` +
+        "标签页面地址也会失效。笔记里如果还留着这个名字，发布或存草稿时可能会重新创建。",
+      confirmText: "删除标签",
+    });
+    if (!confirmed || !this.api) return;
+
+    try {
+      await this.api.deleteTag(tag.id);
+      this.existingTags = this.existingTags.filter((item) => item.id !== tag.id);
+      const remaining = parseTags(this.tagsText).filter(
+        (item) => item.toLowerCase() !== tag.name.toLowerCase(),
+      );
+      this.tagsText = remaining.join(", ");
+      if (this.tagInput) this.tagInput.value = this.tagsText;
+      this.renderTagChips();
+      new Notice("标签已删除。");
+    } catch (error) {
+      new Notice(`删除标签失败：${describeApiError(error)}`, 8000);
     }
   }
 

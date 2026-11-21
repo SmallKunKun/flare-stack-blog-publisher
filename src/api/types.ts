@@ -80,6 +80,10 @@ export interface CreatePostResult {
   saveToken: string;
 }
 
+export interface DeleteResult {
+  success: boolean;
+}
+
 export interface WriteResult {
   success: boolean;
   saveToken: string;
