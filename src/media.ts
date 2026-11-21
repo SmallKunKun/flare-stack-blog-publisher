@@ -218,6 +218,14 @@ async function findExistingMedia(
   }
 }
 
+export async function uploadVaultImage(
+  api: BlogApi,
+  file: TFile,
+  options: MediaUploadOptions,
+): Promise<Media> {
+  return uploadFile(api, file, new Map(), options);
+}
+
 function isImagePath(value: string): boolean {
   const withoutQuery = value.split(/[?#]/)[0] ?? value;
   const extension = withoutQuery.split(".").pop()?.toLocaleLowerCase() ?? "";

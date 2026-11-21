@@ -9,6 +9,7 @@ import { BlogApi, normalizeSiteUrl } from "./api/client";
 import { describeApiError } from "./api/errors";
 import type { AdminPostListItem } from "./api/types";
 import { createPostNote, type NewPostForm } from "./create-post";
+import { MediaLibraryModal } from "./media-library";
 import { NewPostModal } from "./new-post-modal";
 import {
   noteCategory,
@@ -66,15 +67,16 @@ export default class FlareStackBlogPublisher extends Plugin {
 
     this.addSettingTab(new PublisherSettingTab(this.app, this));
 
-    // Obsidian adds new ribbon items above earlier ones, so register them in
-    // reverse to show: 新建文章, 拉取文章, 文章信息, 发布文章.
-    // Obsidian inserts plugin ribbon buttons in an implementation-defined
-    // order, so keep the elements and arrange them explicitly afterwards.
+    // Keep the elements and arrange them explicitly after Obsidian has added
+    // the buttons to the ribbon.
     const newPostIcon = this.addRibbonIcon("plus", "新建文章", () => {
       this.openNewPostModal();
     });
     const pullIcon = this.addRibbonIcon("download", "拉取文章", () => {
       void this.openPullModal();
+    });
+    const mediaIcon = this.addRibbonIcon("image", "媒体库", () => {
+      void this.openMediaLibrary();
     });
     const infoIcon = this.addRibbonIcon("info", "文章信息", () => {
       this.openActiveArticleInfo();
@@ -82,7 +84,13 @@ export default class FlareStackBlogPublisher extends Plugin {
     const publishIcon = this.addRibbonIcon("upload", "发布文章", () => {
       this.publishActiveChoice();
     });
-    const ribbonIcons = [newPostIcon, pullIcon, infoIcon, publishIcon];
+    const ribbonIcons = [
+      newPostIcon,
+      pullIcon,
+      mediaIcon,
+      infoIcon,
+      publishIcon,
+    ];
     window.setTimeout(() => this.arrangeRibbon(ribbonIcons), 0);
 
     this.registerEvent(
@@ -161,6 +169,12 @@ export default class FlareStackBlogPublisher extends Plugin {
       id: "new-post",
       name: "新建博客文章",
       callback: () => this.openNewPostModal(),
+    });
+
+    this.addCommand({
+      id: "open-media-library",
+      name: "媒体库",
+      callback: () => void this.openMediaLibrary(),
     });
 
     this.addCommand({
@@ -319,6 +333,12 @@ export default class FlareStackBlogPublisher extends Plugin {
         .setTitle("拉取文章")
         .setIcon("download")
         .onClick(() => void this.openPullModal()),
+    );
+    menu.addItem((item) =>
+      item
+        .setTitle("媒体库")
+        .setIcon("image")
+        .onClick(() => void this.openMediaLibrary()),
     );
     menu.addItem((item) =>
       item
@@ -572,6 +592,26 @@ export default class FlareStackBlogPublisher extends Plugin {
     } catch (error) {
       console.error("Flare Stack Blog pull list failed", error);
       new Notice(`读取文章列表失败：${describeApiError(error)}`, 8000);
+    }
+  }
+
+  private async openMediaLibrary(): Promise<void> {
+    if (!this.isConfigured()) {
+      new Notice("还没填博客地址或 API Key");
+      this.openPluginSettings();
+      return;
+    }
+
+    try {
+      const api = this.createApi();
+      new MediaLibraryModal(
+        this.app,
+        api,
+        this.settings.uuidImageNames,
+      ).open();
+    } catch (error) {
+      console.error("Flare Stack Blog media library failed", error);
+      new Notice(`打开媒体库失败：${describeApiError(error)}`, 8000);
     }
   }
 

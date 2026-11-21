@@ -134,9 +134,16 @@ export class BlogApi {
   async listMedia(params: {
     search?: string;
     limit?: number;
+    cursor?: number;
+    sort?: "newest" | "oldest" | "largest";
   } = {}): Promise<MediaListPage> {
     return this.request<MediaListPage>("GET", "/admin/media", {
-      query: { search: params.search, limit: params.limit },
+      query: {
+        search: params.search,
+        limit: params.limit,
+        cursor: params.cursor,
+        sort: params.sort,
+      },
     });
   }
   async createCategory(name: string): Promise<CategoryOption> {

@@ -280,3 +280,97 @@ body:not(.fsb-show-internal) .metadata-property[data-property-key^="fsb_"] {
   font-size: var(--font-ui-small);
   padding: 20px;
 }
+
+.modal.fsb-media-modal {
+  width: min(900px, 94vw);
+}
+
+.fsb-media-toolbar {
+  display: flex;
+  gap: 8px;
+  margin: 4px 0 8px;
+}
+
+.fsb-media-search {
+  flex: 1;
+}
+
+.fsb-media-status {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+  margin: 4px 0 8px;
+}
+
+.fsb-media-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.fsb-media-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--background-secondary);
+}
+
+.fsb-media-thumb {
+  aspect-ratio: 4 / 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--background-primary);
+}
+
+.fsb-media-thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.fsb-media-thumb-empty {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+}
+
+.fsb-media-name {
+  padding: 6px 8px 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--font-ui-small);
+  font-weight: 600;
+}
+
+.fsb-media-meta {
+  padding: 2px 8px 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+}
+
+.fsb-media-actions {
+  display: flex;
+  gap: 6px;
+  padding: 0 8px 8px;
+}
+
+.fsb-media-action {
+  flex: 1;
+  font-size: var(--font-ui-smaller);
+}
+
+.fsb-media-more {
+  margin-top: 10px;
+}
+
+.fsb-media-more-button {
+  width: 100%;
+}
