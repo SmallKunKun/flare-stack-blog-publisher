@@ -10,8 +10,20 @@ import { describeApiError } from "./api/errors";
 import type { AdminPostListItem } from "./api/types";
 import { createPostNote, type NewPostForm } from "./create-post";
 import { NewPostModal } from "./new-post-modal";
-import { noteCategory, notePostId, noteTags, parseNote, stringList, stringValue } from "./note";
+import {
+  noteCategory,
+  notePostId,
+  noteTags,
+  noteTitle,
+  parseNote,
+  stringList,
+  stringValue,
+} from "./note";
 import { postUrlOf, publishNote, type PublishMode } from "./publish";
+import {
+  confirmPublish,
+  type PublishConfirmation,
+} from "./publish-confirm-modal";
 import { PublishedAtModal } from "./published-at-modal";
 import {
   findLocalPostFile,
@@ -356,6 +368,27 @@ export default class FlareStackBlogPublisher extends Plugin {
       this.openPluginSettings();
       return;
     }
+
+    let details: PublishConfirmation;
+    try {
+      const raw = await this.app.vault.read(file);
+      const note = parseNote(raw);
+      details = {
+        mode,
+        title: noteTitle(note.frontmatter, file.basename),
+        path: file.path,
+        category: noteCategory(note.frontmatter) ?? "",
+        tags: noteTags(note.frontmatter),
+        publishedAt: normalizePublishedAt(note.frontmatter.publishedAt),
+        postId: notePostId(note.frontmatter),
+      };
+    } catch (error) {
+      console.error("Flare Stack Blog read note failed", error);
+      new Notice(`读取笔记失败：${describeApiError(error)}`, 8000);
+      return;
+    }
+
+    if (!(await confirmPublish(this.app, details))) return;
 
     new Notice(mode === "publish" ? "正在发布…" : "正在保存草稿…");
 
