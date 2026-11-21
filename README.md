@@ -9,6 +9,7 @@ Publish & drafts · Cloud post sync · Media library · Chinese note properties
 [![Obsidian](https://img.shields.io/badge/Obsidian-1.5.7%2B-7C3AED?logo=obsidian&logoColor=white&style=flat-square)](https://obsidian.md)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white&style=flat-square)](https://www.typescriptlang.org)
 [![Node](https://img.shields.io/badge/Node-20%2B-339933?logo=node.js&logoColor=white&style=flat-square)](https://nodejs.org)
+[![GitHub release](https://img.shields.io/github/v/release/SmallKunKun/flare-stack-blog-publisher?style=flat-square)](https://github.com/SmallKunKun/flare-stack-blog-publisher/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](./LICENSE)
 
 [功能特性](#-功能特性) · [安装](#-安装) · [配置](#-配置) · [使用](#-使用) · [开发](#-本地开发)
@@ -97,10 +98,40 @@ User-Agent，以兼容可能启用的 Cloudflare WAF。
 | 依赖 | 要求 |
 | :--- | :--- |
 | Obsidian | 1.5.7 或更高版本 |
+| Flare Stack Blog | 已部署并启用 Admin API |
 | Node.js | 20 或更高版本，仅从源码构建时需要 |
-| Flare Stack Blog | 已部署并启用 API Key |
 
-### 方式一：安装到本机 vault（推荐）
+### 方式一：BRAT（推荐）
+
+1. 在 Obsidian 社区插件中安装 **BRAT**。
+2. 打开 BRAT，点击 **Add Beta Plugin**。
+3. 输入仓库地址：
+
+   ```text
+   SmallKunKun/flare-stack-blog-publisher
+   ```
+
+4. 启用 **Flare Stack Blog Publisher**。
+
+仓库已公开，并包含 `0.1.0` Release。BRAT 会读取最新 Release 并在后续版本自动更新。
+
+Release 页面：
+
+```text
+https://github.com/SmallKunKun/flare-stack-blog-publisher/releases
+```
+
+### 方式二：手动安装
+
+从 Release 下载 `flare-stack-blog-publisher.zip`，解压到：
+
+```text
+<vault>/.obsidian/plugins/flare-stack-blog-publisher/
+```
+
+重启 Obsidian，在「设置 → 第三方插件」中启用 **Flare Stack Blog Publisher**。
+
+### 方式三：从源码安装
 
 ```bash
 git clone https://github.com/SmallKunKun/flare-stack-blog-publisher.git
@@ -114,7 +145,7 @@ npm run install:plugin
 npm run install:plugin -- /path/to/MyVault
 ```
 
-### 方式二：开发模式
+开发模式：
 
 ```bash
 npm run link:plugin
@@ -124,36 +155,6 @@ npm run dev
 符号链接模式只链接 `main.js`、`manifest.json`、`styles.css`，`data.json` 保留在 vault 中。
 修改代码后，在 Obsidian 执行「重新加载应用」即可。Windows 不支持文件符号链接时会自动
 改为复制。
-
-### 方式三：BRAT
-
-将仓库推送到 GitHub 后创建版本标签：
-
-```bash
-git tag 0.1.0
-git push origin 0.1.0
-```
-
-GitHub Actions 会构建并创建 Release，附带 `main.js`、`manifest.json`、`styles.css` 和
-安装包 zip。
-
-在 Obsidian 安装 **BRAT**，打开 **Add Beta Plugin**，输入：
-
-```text
-SmallKunKun/flare-stack-blog-publisher
-```
-
-仓库需要为公开仓库。后续发布新版本后，BRAT 会自动更新。
-
-### 方式四：手动安装
-
-下载 Release 中的 `flare-stack-blog-publisher.zip`，解压到：
-
-```text
-<vault>/.obsidian/plugins/flare-stack-blog-publisher/
-```
-
-重启 Obsidian，在「设置 → 第三方插件」中启用 **Flare Stack Blog Publisher**。
 
 ## ⚙️ 配置
 
