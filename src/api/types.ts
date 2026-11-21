@@ -72,6 +72,7 @@ export interface UpdatePostData {
   contentMarkdown?: string;
   categoryId?: number | null;
   coverMediaId?: number | null;
+  publishedAt?: string | null;
 }
 
 export interface CreatePostResult {

@@ -6,6 +6,10 @@ import {
   type App,
 } from "obsidian";
 import type { NewPostForm } from "./create-post";
+import {
+  beijingDateTimeLocalValue,
+  beijingInputToIso,
+} from "./time";
 
 export class NewPostModal extends Modal {
   private title = "";
@@ -14,13 +18,18 @@ export class NewPostModal extends Modal {
   private tags = "";
   private slug = "";
   private cover = "";
+  private publishedAt: string;
   private titleInput: HTMLInputElement | null = null;
 
   constructor(
     app: App,
+    autoFillPublishedAt: boolean,
     private readonly onSubmit: (form: NewPostForm) => void,
   ) {
     super(app);
+    this.publishedAt = autoFillPublishedAt
+      ? beijingDateTimeLocalValue()
+      : "";
   }
 
   onOpen(): void {
@@ -88,6 +97,16 @@ export class NewPostModal extends Modal {
         }),
       );
 
+    new Setting(this.contentEl)
+      .setName("发布时间")
+      .setDesc("北京时间，留空就不填")
+      .addText((text) => {
+        text.inputEl.type = "datetime-local";
+        text.setValue(this.publishedAt).onChange((value) => {
+          this.publishedAt = value;
+        });
+      });
+
     const actions = this.contentEl.createDiv({ cls: "fsb-conflict-actions" });
     new ButtonComponent(actions)
       .setButtonText("创建并打开")
@@ -124,6 +143,7 @@ export class NewPostModal extends Modal {
       tags,
       slug: this.slug,
       cover: this.cover,
+      publishedAt: beijingInputToIso(this.publishedAt) ?? "",
     };
     this.close();
     this.onSubmit(form);

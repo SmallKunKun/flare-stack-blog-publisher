@@ -12,6 +12,7 @@ import { createPostNote, type NewPostForm } from "./create-post";
 import { NewPostModal } from "./new-post-modal";
 import { notePostId, parseNote, stringValue } from "./note";
 import { postUrlOf, publishNote, type PublishMode } from "./publish";
+import { PublishedAtModal } from "./published-at-modal";
 import {
   findLocalPostFile,
   localPostIds,
@@ -19,6 +20,7 @@ import {
 } from "./pull";
 import { PullConflictModal } from "./pull-conflict-modal";
 import { PullPostModal } from "./pull-modal";
+import { normalizePublishedAt } from "./time";
 import {
   DEFAULT_SETTINGS,
   PublisherSettingTab,
@@ -130,6 +132,17 @@ export default class FlareStackBlogPublisher extends Plugin {
       name: "新建博客文章",
       callback: () => this.openNewPostModal(),
     });
+
+    this.addCommand({
+      id: "set-published-at",
+      name: "设置发布时间",
+      checkCallback: (checking) => {
+        const file = this.activeMarkdownFile();
+        if (!file) return false;
+        if (!checking) void this.openPublishedAtModal(file);
+        return true;
+      },
+    });
   }
 
   private activeMarkdownFile(): TFile | null {
@@ -190,6 +203,12 @@ export default class FlareStackBlogPublisher extends Plugin {
         .setIcon("external-link")
         .onClick(() => void this.openPost(file)),
     );
+    menu.addItem((item) =>
+      item
+        .setTitle("设置发布时间…")
+        .setIcon("calendar")
+        .onClick(() => void this.openPublishedAtModal(file)),
+    );
   }
 
   private onStatusBarClick(event: MouseEvent): void {
@@ -229,6 +248,19 @@ export default class FlareStackBlogPublisher extends Plugin {
         .setTitle("拉取文章…")
         .setIcon("download")
         .onClick(() => void this.openPullModal()),
+    );
+    menu.addItem((item) =>
+      item
+        .setTitle("设置发布时间…")
+        .setIcon("calendar")
+        .onClick(() => {
+          const file = this.activeMarkdownFile();
+          if (!file) {
+            new Notice("先打开一篇 Markdown 笔记。");
+            return;
+          }
+          void this.openPublishedAtModal(file);
+        }),
     );
     menu.addItem((item) =>
       item
@@ -399,9 +431,13 @@ export default class FlareStackBlogPublisher extends Plugin {
   }
 
   private openNewPostModal(): void {
-    new NewPostModal(this.app, (form) => {
-      void this.createNewPost(form);
-    }).open();
+    new NewPostModal(
+      this.app,
+      this.settings.autoFillPublishedAt,
+      (form) => {
+        void this.createNewPost(form);
+      },
+    ).open();
   }
 
   private async createNewPost(form: NewPostForm): Promise<void> {
@@ -416,6 +452,37 @@ export default class FlareStackBlogPublisher extends Plugin {
     } catch (error) {
       console.error("Flare Stack Blog create post failed", error);
       new Notice(`创建失败：${describeApiError(error)}`, 8000);
+    }
+  }
+
+  private async openPublishedAtModal(file: TFile): Promise<void> {
+    try {
+      const raw = await this.app.vault.read(file);
+      const current = parseNote(raw).frontmatter.publishedAt;
+      new PublishedAtModal(
+        this.app,
+        normalizePublishedAt(current),
+        (iso) => void this.savePublishedAt(file, iso),
+      ).open();
+    } catch (error) {
+      console.error("Flare Stack Blog read publishedAt failed", error);
+      new Notice(`读取发布时间失败：${describeApiError(error)}`, 8000);
+    }
+  }
+
+  private async savePublishedAt(
+    file: TFile,
+    iso: string | undefined,
+  ): Promise<void> {
+    try {
+      await this.app.fileManager.processFrontMatter(file, (frontmatter) => {
+        if (iso) frontmatter.publishedAt = iso;
+        else delete frontmatter.publishedAt;
+      });
+      new Notice(iso ? "发布时间已保存。" : "发布时间已清除。");
+    } catch (error) {
+      console.error("Flare Stack Blog save publishedAt failed", error);
+      new Notice(`保存发布时间失败：${describeApiError(error)}`, 8000);
     }
   }
 

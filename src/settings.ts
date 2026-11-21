@@ -9,6 +9,7 @@ export interface PublisherSettings {
   defaultTags: string;
   pullFolder: string;
   newPostFolder: string;
+  autoFillPublishedAt: boolean;
   autoCreateTaxonomy: boolean;
   uploadLocalImages: boolean;
   uuidImageNames: boolean;
@@ -23,6 +24,7 @@ export const DEFAULT_SETTINGS: PublisherSettings = {
   defaultTags: "",
   pullFolder: "FlareStackBlog",
   newPostFolder: "FlareStackBlog/Drafts",
+  autoFillPublishedAt: true,
   autoCreateTaxonomy: true,
   uploadLocalImages: true,
   uuidImageNames: false,
@@ -147,6 +149,18 @@ export class PublisherSettingTab extends PluginSettingTab {
           .setValue(this.plugin.settings.newPostFolder)
           .onChange(async (value) => {
             this.plugin.settings.newPostFolder = value;
+            await this.plugin.saveSettings();
+          }),
+      );
+
+    new Setting(containerEl)
+      .setName("新建文章自动填发布时间")
+      .setDesc("用当前北京时间填 publishedAt，不需要可以关掉。")
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.autoFillPublishedAt)
+          .onChange(async (value) => {
+            this.plugin.settings.autoFillPublishedAt = value;
             await this.plugin.saveSettings();
           }),
       );

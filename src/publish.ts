@@ -23,6 +23,7 @@ import { PostPickerModal, type PostPickerChoice } from "./post-picker";
 import { categoryIdFor, resolveTaxonomy } from "./taxonomy";
 import { uploadBodyImages, uploadCover } from "./media";
 import { convertWikiLinks } from "./links";
+import { beijingIsoNow, normalizePublishedAt } from "./time";
 
 export type PublishMode = "publish" | "draft";
 
@@ -58,6 +59,7 @@ export async function publishNote(
   const body = note.body;
   const summary = noteSummary(note.frontmatter);
   const slug = noteSlug(note.frontmatter);
+  const publishedAt = normalizePublishedAt(note.frontmatter.publishedAt);
 
   let postId = notePostId(note.frontmatter);
   if (postId === undefined) {
@@ -123,6 +125,7 @@ export async function publishNote(
       contentMarkdown: publishBody,
       ...(summary !== undefined ? { summary } : {}),
       ...(slug !== undefined ? { slug } : {}),
+      ...(publishedAt ? { publishedAt } : {}),
     };
     const categoryId = categoryIdFor(taxonomy.category);
     if (categoryId !== undefined) data.categoryId = categoryId;
@@ -150,6 +153,7 @@ export async function publishNote(
     if (categoryId !== undefined) patch.categoryId = categoryId;
     if (cover.mediaId !== undefined) patch.coverMediaId = cover.mediaId;
     if (slug !== undefined) patch.slug = slug;
+    if (publishedAt) patch.publishedAt = publishedAt;
 
     if (Object.keys(patch).length > 0) {
       const patched = await updateWithRetry(api, postId, patch, saveToken);
@@ -270,7 +274,7 @@ async function writeBackMetadata(
 ): Promise<void> {
   await app.fileManager.processFrontMatter(file, (frontmatter) => {
     frontmatter.fsb_post_id = postId;
-    frontmatter.fsb_updated_at = new Date().toISOString();
+    frontmatter.fsb_updated_at = beijingIsoNow();
     if (postUrl) {
       frontmatter.fsb_url = postUrl;
     }

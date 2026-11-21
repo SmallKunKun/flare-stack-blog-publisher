@@ -2,6 +2,7 @@ import { Modal, TextComponent, type App } from "obsidian";
 import type { BlogApi } from "./api/client";
 import { describeApiError } from "./api/errors";
 import type { AdminPostListItem } from "./api/types";
+import { formatBeijingTime } from "./time";
 
 export class PullPostModal extends Modal {
   private query = "";
@@ -102,10 +103,7 @@ export class PullPostModal extends Modal {
         ? "已发布"
         : "草稿";
     const slug = post.publicSlug ?? post.slug;
-    const updated = new Date(post.updatedAt);
-    const date = Number.isNaN(updated.getTime())
-      ? post.updatedAt
-      : updated.toLocaleString();
+    const date = formatBeijingTime(post.updatedAt);
     const taxonomy = [
       post.category?.name,
       post.tags.map((tag) => tag.name).join("、"),

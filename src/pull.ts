@@ -8,6 +8,7 @@ import type { BlogApi } from "./api/client";
 import type { AdminPost, AdminPostListItem } from "./api/types";
 import { mapOutsideCode } from "./markdown-code";
 import { numberValue, parseNote } from "./note";
+import { beijingIsoNow, toBeijingIso } from "./time";
 import {
   ensureFolder,
   normalizeFolder,
@@ -75,10 +76,12 @@ export async function pullPostToLocal(
 async function buildNoteContent(api: BlogApi, post: AdminPost): Promise<string> {
   const publicSlug =
     post.publicSlug ?? (post.status === "published" ? post.slug : null);
+  const publishedAt = post.publishedAt ?? post.published?.publishedAt ?? null;
   const frontmatter: Record<string, unknown> = {
     title: post.title,
     ...(post.summary ? { summary: post.summary } : {}),
     ...(post.slug ? { slug: post.slug } : {}),
+    ...(publishedAt ? { publishedAt: toBeijingIso(publishedAt) } : {}),
     ...(post.category ? { category: post.category.name } : {}),
     ...(post.tags.length > 0
       ? { tags: post.tags.map((tag) => tag.name) }
@@ -89,7 +92,7 @@ async function buildNoteContent(api: BlogApi, post: AdminPost): Promise<string> 
           fsb_url: `${api.siteOrigin}/post/${encodeURIComponent(publicSlug)}`,
         }
       : {}),
-    fsb_pulled_at: new Date().toISOString(),
+    fsb_pulled_at: beijingIsoNow(),
   };
 
   const body = (

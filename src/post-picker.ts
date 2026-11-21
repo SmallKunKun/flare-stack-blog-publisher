@@ -1,5 +1,6 @@
 import { SuggestModal, type App } from "obsidian";
 import type { AdminPostListItem } from "./api/types";
+import { formatBeijingTime } from "./time";
 
 export type PostPickerChoice =
   | { kind: "new" }
@@ -58,7 +59,7 @@ export class PostPickerModal extends SuggestModal<PickerItem> {
     const state = post.status === "published" ? "已发布" : "草稿";
     const slug = post.publicSlug ?? post.slug;
     el.createDiv({
-      text: `${state} · ${slug} · 更新于 ${formatDate(post.updatedAt)}`,
+      text: `${state} · ${slug} · 更新于 ${formatBeijingTime(post.updatedAt)}`,
       cls: "fsb-picker-meta",
     });
   }
@@ -76,10 +77,4 @@ export class PostPickerModal extends SuggestModal<PickerItem> {
     if (!this.settled) this.resolve(null);
     super.onClose();
   }
-}
-
-function formatDate(value: string): string {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleString();
 }

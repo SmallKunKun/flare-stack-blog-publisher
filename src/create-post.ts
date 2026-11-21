@@ -14,6 +14,7 @@ export interface NewPostForm {
   tags: string[];
   slug: string;
   cover: string;
+  publishedAt: string;
 }
 
 export async function createPostNote(
@@ -34,6 +35,7 @@ export async function createPostNote(
     category: form.category.trim(),
     tags: form.tags,
     cover: form.cover.trim(),
+    ...(form.publishedAt ? { publishedAt: form.publishedAt } : {}),
   };
   const content = `---\n${stringifyYaml(frontmatter)}---\n\n`;
 
