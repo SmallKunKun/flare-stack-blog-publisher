@@ -280,6 +280,21 @@ export default class FlareStackBlogPublisher extends Plugin {
           );
         }
       }
+
+      if (!view.containerEl.querySelector(".fsb-library-action")) {
+        try {
+          const action = view.addAction("image", "媒体库", () => {
+            void this.openMediaLibrary();
+          });
+          action.addClass("fsb-library-action");
+          this.viewActions.add(action);
+        } catch (error) {
+          console.error(
+            "Flare Stack Blog: could not add media library action",
+            error,
+          );
+        }
+      }
     }
   }
 
