@@ -45,7 +45,7 @@ export async function resolveTaxonomy(
         const created = await api.createCategory(name);
         category = { action: "set", id: created.id };
       } else {
-        warnings.push(`分类「${name}」不存在，保留原分类`);
+        warnings.push(`分类「${name}」不存在，已保留原分类`);
       }
     }
   }
@@ -68,7 +68,7 @@ export async function resolveTaxonomy(
       }
 
       if (missing.length > 0 && !input.autoCreate) {
-        warnings.push(`标签不存在，保留原标签：${missing.join("、")}`);
+        warnings.push(`标签不存在，已保留原标签：${missing.join("、")}`);
       } else {
         for (const name of missing) {
           const created = await api.createTag(name);

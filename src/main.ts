@@ -264,7 +264,7 @@ export default class FlareStackBlogPublisher extends Plugin {
   private publishActiveChoice(): void {
     const file = this.activeMarkdownFile();
     if (!file) {
-      new Notice("先打开一篇 Markdown 笔记");
+      new Notice("请先打开 Markdown 笔记");
       return;
     }
     void this.runPublishChoice(file);
@@ -273,7 +273,7 @@ export default class FlareStackBlogPublisher extends Plugin {
   private openActiveArticleInfo(): void {
     const file = this.activeMarkdownFile();
     if (!file) {
-      new Notice("先打开一篇 Markdown 笔记");
+      new Notice("请先打开 Markdown 笔记");
       return;
     }
     void this.openArticleInfoModal(file);
@@ -318,7 +318,7 @@ export default class FlareStackBlogPublisher extends Plugin {
         try {
           const action = view.addAction("info", "文章信息", () => {
             if (view.file) void this.openArticleInfoModal(view.file);
-            else new Notice("先打开一篇 Markdown 笔记");
+            else new Notice("请先打开 Markdown 笔记");
           });
           action.addClass("fsb-info-action");
           this.viewActions.add(action);
@@ -505,13 +505,13 @@ export default class FlareStackBlogPublisher extends Plugin {
   private async testConnection(): Promise<void> {
     try {
       if (!this.isConfigured()) {
-        new Notice("还没填博客地址或 API Key");
+        new Notice("请先配置博客地址和 API Key");
         this.openPluginSettings();
         return;
       }
       const api = this.createApi();
       const page = await api.listPosts({ limit: 1 });
-      new Notice(`连接正常，博客里有 ${page.total} 篇文章`);
+      new Notice(`连接成功，共 ${page.total} 篇文章`);
     } catch (error) {
       new Notice(`连接失败：${describeApiError(error)}`, 8000);
     }
@@ -523,7 +523,7 @@ export default class FlareStackBlogPublisher extends Plugin {
     skipConfirm = false,
   ): Promise<void> {
     if (!this.isConfigured()) {
-      new Notice("还没填博客地址或 API Key");
+      new Notice("请先配置博客地址和 API Key");
       this.openPluginSettings();
       return;
     }
@@ -551,7 +551,7 @@ export default class FlareStackBlogPublisher extends Plugin {
       );
 
       if (!outcome) {
-        new Notice("已取消");
+        new Notice("操作已取消");
         return;
       }
 
@@ -581,7 +581,7 @@ export default class FlareStackBlogPublisher extends Plugin {
 
   private async runPublishChoice(file: TFile): Promise<void> {
     if (!this.isConfigured()) {
-      new Notice("还没填博客地址或 API Key");
+      new Notice("请先配置博客地址和 API Key");
       this.openPluginSettings();
       return;
     }
@@ -638,7 +638,7 @@ export default class FlareStackBlogPublisher extends Plugin {
 
   private async openPost(file: TFile): Promise<void> {
     if (!this.isConfigured()) {
-      new Notice("还没填博客地址或 API Key");
+      new Notice("请先配置博客地址和 API Key");
       this.openPluginSettings();
       return;
     }
@@ -652,7 +652,7 @@ export default class FlareStackBlogPublisher extends Plugin {
         const post = await api.getPost(postId);
         const url = postUrlOf(api, post);
         if (!url) {
-          new Notice("文章还没发布，没有公开地址");
+          new Notice("文章尚未发布，暂无公开地址");
           return;
         }
         window.open(url, "_blank");
@@ -665,7 +665,7 @@ export default class FlareStackBlogPublisher extends Plugin {
         return;
       }
 
-      new Notice("这篇还没关联博客文章，先发布一次");
+      new Notice("该笔记尚未关联博客文章，请先发布");
     } catch (error) {
       console.error("Flare Stack Blog open post failed", error);
       new Notice(`打开失败：${describeApiError(error)}`, 8000);
@@ -674,7 +674,7 @@ export default class FlareStackBlogPublisher extends Plugin {
 
   private async unpublishPost(file: TFile): Promise<void> {
     if (!this.isConfigured()) {
-      new Notice("还没填博客地址或 API Key");
+      new Notice("请先配置博客地址和 API Key");
       this.openPluginSettings();
       return;
     }
@@ -693,13 +693,13 @@ export default class FlareStackBlogPublisher extends Plugin {
     }
 
     if (postId === undefined) {
-      new Notice("这篇还没关联云端文章");
+      new Notice("该笔记尚未关联云端文章");
       return;
     }
 
     const confirmed = await confirmAction(this.app, {
       title: "取消发布",
-      message: `取消发布《${title}》？公开页面会下线，文章会变成草稿，草稿内容会保留`,
+      message: `取消发布《${title}》？公开页面将下线，文章转为草稿，草稿内容保留`,
       confirmText: "取消发布",
     });
     if (!confirmed) return;
@@ -747,7 +747,7 @@ export default class FlareStackBlogPublisher extends Plugin {
     postId: number | undefined,
   ): Promise<void> {
     if (postId !== undefined && !this.isConfigured()) {
-      new Notice("还没填博客地址或 API Key");
+      new Notice("请先配置博客地址和 API Key");
       this.openPluginSettings();
       return;
     }
@@ -773,9 +773,9 @@ export default class FlareStackBlogPublisher extends Plugin {
       await this.app.fileManager.trashFile(file);
 
       if (remoteState === "deleted") {
-        new Notice(`已删除云端和本地：${title}`);
+        new Notice(`已删除云端与本地：${title}`);
       } else if (remoteState === "missing") {
-        new Notice(`云端已不存在，已删除本地：${title}`);
+        new Notice(`云端文章不存在，已删除本地：${title}`);
       } else {
         new Notice(`已删除本地：${title}`);
       }
@@ -792,7 +792,7 @@ export default class FlareStackBlogPublisher extends Plugin {
 
   private async openPullModal(): Promise<void> {
     if (!this.isConfigured()) {
-      new Notice("还没填博客地址或 API Key");
+      new Notice("请先配置博客地址和 API Key");
       this.openPluginSettings();
       return;
     }
@@ -808,13 +808,13 @@ export default class FlareStackBlogPublisher extends Plugin {
       ).open();
     } catch (error) {
       console.error("Flare Stack Blog pull list failed", error);
-      new Notice(`读取文章列表失败：${describeApiError(error)}`, 8000);
+      new Notice(`获取文章列表失败：${describeApiError(error)}`, 8000);
     }
   }
 
   private async openMediaLibrary(): Promise<void> {
     if (!this.isConfigured()) {
-      new Notice("还没填博客地址或 API Key");
+      new Notice("请先配置博客地址和 API Key");
       this.openPluginSettings();
       return;
     }
@@ -930,7 +930,7 @@ export default class FlareStackBlogPublisher extends Plugin {
       await this.app.fileManager.processFrontMatter(file, (frontmatter) => {
         changed = migrateProperties(frontmatter);
       });
-      new Notice(changed ? "属性已改成中文" : "没有需要转换的属性");
+      new Notice(changed ? "属性已转换为中文" : "无需转换");
     } catch (error) {
       console.error("Flare Stack Blog migrate properties failed", error);
       new Notice(`转换属性失败：${describeApiError(error)}`, 8000);
@@ -1018,7 +1018,7 @@ export default class FlareStackBlogPublisher extends Plugin {
   updateStatusBar(): void {
     if (!this.statusBarEl) return;
     if (!this.isConfigured()) {
-      this.statusBarEl.setText("FSB 未设置");
+      this.statusBarEl.setText("FSB 未配置");
       this.statusBarEl.title = "点这里打开插件设置";
       return;
     }
@@ -1027,7 +1027,7 @@ export default class FlareStackBlogPublisher extends Plugin {
       this.statusBarEl.setText(`FSB · ${origin.replace(/^https?:\/\//, "")}`);
       this.statusBarEl.title = "点这里打开发布菜单";
     } catch {
-      this.statusBarEl.setText("FSB 地址有误");
+      this.statusBarEl.setText("FSB 地址无效");
       this.statusBarEl.title = "检查一下设置里的博客地址";
     }
   }

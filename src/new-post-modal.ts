@@ -227,7 +227,7 @@ export class NewPostModal extends Modal {
 
   private pickCoverFromLibrary(): void {
     if (!this.api) {
-      new Notice("先配置博客地址和 API Key");
+      new Notice("请先配置博客地址和 API Key");
       return;
     }
 
@@ -250,7 +250,7 @@ export class NewPostModal extends Modal {
 
     if (!this.cover) {
       this.coverPreviewEl.createDiv({
-        text: "未选择封面",
+        text: "未设置封面",
         cls: "fsb-cover-preview-empty",
       });
       return;
@@ -259,7 +259,7 @@ export class NewPostModal extends Modal {
     const source = coverSource(this.app, this.cover, this.sourcePath);
     if (!source) {
       this.coverPreviewEl.createDiv({
-        text: "找不到封面图片",
+        text: "未找到封面图片",
         cls: "fsb-cover-preview-empty",
       });
       return;

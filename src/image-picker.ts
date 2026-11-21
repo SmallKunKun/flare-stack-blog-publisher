@@ -15,7 +15,7 @@ export class ImagePickerModal extends FuzzySuggestModal<TFile> {
     private readonly onChoose: (file: TFile) => void,
   ) {
     super(app);
-    this.setPlaceholder("搜索 vault 里的图片…");
+    this.setPlaceholder("搜索本地图片…");
   }
 
   getItems(): TFile[] {

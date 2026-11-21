@@ -50,7 +50,7 @@ export class TaxonomyModal extends Modal {
       .addText((text) => {
         this.categoryInput = text.inputEl;
         text
-          .setPlaceholder("输入创建新分类")
+          .setPlaceholder("输入或新建分类")
           .setValue(this.category)
           .onChange((value) => {
             this.category = value;
@@ -133,7 +133,7 @@ export class TaxonomyModal extends Modal {
 
   private async load(): Promise<void> {
     if (!this.api) {
-      this.statusEl.setText("还没连接博客，先手动输入");
+      this.statusEl.setText("未连接博客，仅支持手动输入");
       this.renderCategoryChips();
       this.renderTagChips();
       return;
@@ -170,7 +170,7 @@ export class TaxonomyModal extends Modal {
 
     if (this.categories.length === 0) {
       this.categoryChipsEl.createEl("span", {
-        text: this.api ? "云端还没有分类" : "连上博客后可以选已有分类",
+        text: this.api ? "云端暂无分类" : "连接博客后可选择已有分类",
         cls: "fsb-taxonomy-empty",
       });
       return;
@@ -215,8 +215,8 @@ export class TaxonomyModal extends Modal {
     const confirmed = await confirmAction(this.app, {
       title: "删除分类",
       message:
-        `删除「${category.name}」？所有用这个分类的文章都会失去分类，` +
-        "分类页面地址也会失效，笔记里如果还留着这个名字，发布或存草稿时可能会重新创建",
+        `删除分类「${category.name}」？使用该分类的文章将失去分类，分类页面地址失效；` +
+        "若笔记仍保留该名称，发布时会重新创建",
       confirmText: "删除分类",
     });
     if (!confirmed || !this.api) return;
@@ -241,7 +241,7 @@ export class TaxonomyModal extends Modal {
 
     if (this.existingTags.length === 0) {
       this.tagChipsEl.createEl("span", {
-        text: this.api ? "云端还没有标签" : "连上博客后可以选已有标签",
+        text: this.api ? "云端暂无标签" : "连接博客后可选择已有标签",
         cls: "fsb-taxonomy-empty",
       });
       return;
@@ -286,8 +286,8 @@ export class TaxonomyModal extends Modal {
     const confirmed = await confirmAction(this.app, {
       title: "删除标签",
       message:
-        `删除「${tag.name}」？所有用这个标签的文章都会失去标签，` +
-        "标签页面地址也会失效，笔记里如果还留着这个名字，发布或存草稿时可能会重新创建",
+        `删除标签「${tag.name}」？使用该标签的文章将失去标签，标签页面地址失效；` +
+        "若笔记仍保留该名称，发布时会重新创建",
       confirmText: "删除标签",
     });
     if (!confirmed || !this.api) return;

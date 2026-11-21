@@ -108,7 +108,7 @@ export class MediaLibraryModal extends Modal {
       this.render(page.items);
       this.cursor = page.nextCursor;
       this.statusEl.setText(
-        this.count === 0 ? "没有找到图片" : `已加载 ${this.count} 张`,
+        this.count === 0 ? "未找到图片" : `已加载 ${this.count} 张`,
       );
       this.renderMore();
     } catch (error) {
@@ -231,7 +231,7 @@ export class MediaLibraryModal extends Modal {
 
   private async upload(file: TFile): Promise<void> {
     this.uploadButton?.setDisabled(true);
-    new Notice(`正在上传 ${file.name}…`);
+    new Notice(`正在上传：${file.name}`);
 
     try {
       const media = await uploadVaultImage(this.api, file, {
@@ -270,7 +270,7 @@ export class MediaLibraryModal extends Modal {
       await navigator.clipboard.writeText(url);
       new Notice("链接已复制");
     } catch {
-      new Notice("复制失败");
+      new Notice("复制链接失败");
     }
   }
 }

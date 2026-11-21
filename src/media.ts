@@ -58,7 +58,7 @@ export async function uploadBodyImages(
 
         const file = resolveFile(app, target, sourcePath);
         if (!file) {
-          throw new Error(`找不到图片：${target}`);
+          throw new Error(`未找到图片：${target}`);
         }
         const media = await uploadFile(api, file, cache, options);
         const alias = aliasPart?.trim();
@@ -83,7 +83,7 @@ export async function uploadBodyImages(
         const decoded = safeDecode(target);
         const file = resolveFile(app, decoded, sourcePath);
         if (!file) {
-          throw new Error(`找不到图片：${target}`);
+          throw new Error(`未找到图片：${target}`);
         }
         const media = await uploadFile(api, file, cache, options);
         const tail = destination.tail ? ` ${destination.tail}` : "";
@@ -119,7 +119,7 @@ export async function uploadCover(
     frontmatter.image;
   const value = Array.isArray(raw) ? raw[0] : raw;
   if (typeof value !== "string") {
-    return { mediaId: undefined, warnings: ["封面不是图片路径，保留原封面"] };
+    return { mediaId: undefined, warnings: ["封面路径无效，保留原封面"] };
   }
 
   const trimmed = value.trim();
@@ -134,7 +134,7 @@ export async function uploadCover(
   const target = unwrapWikiLink(trimmed);
   const file = resolveFile(app, stripSubpath(target), sourcePath);
   if (!file) {
-    return { mediaId: undefined, warnings: [`找不到封面：${target}`] };
+    return { mediaId: undefined, warnings: [`未找到封面：${target}`] };
   }
 
   try {
@@ -184,7 +184,7 @@ async function uploadFile(
   const extension = file.extension.toLocaleLowerCase();
   const mimeType = MIME_TYPES[extension];
   if (!mimeType) {
-    throw new Error(`不支持这种图片格式：${file.name}`);
+    throw new Error(`不支持的图片格式：${file.name}`);
   }
   if (file.stat.size > MAX_IMAGE_BYTES) {
     throw new Error(`图片超过 10 MB：${file.name}`);

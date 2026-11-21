@@ -39,13 +39,13 @@ export async function convertWikiLinks(
           : (file?.basename ?? target));
 
       if (!file) {
-        warnings.push(`找不到笔记「${target}」，已换成纯文本`);
+        warnings.push(`未找到笔记「${target}」，已转为纯文本`);
         return escapeText(display);
       }
 
       const url = await postUrlFor(app, api, file);
       if (!url) {
-        warnings.push(`笔记「${target}」还没发布，已换成纯文本`);
+        warnings.push(`笔记「${target}」尚未发布，已转为纯文本`);
         return escapeText(display);
       }
 

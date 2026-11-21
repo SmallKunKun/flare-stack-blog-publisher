@@ -43,7 +43,7 @@ export async function ensureFolder(app: App, folder: string): Promise<void> {
     current = current ? `${current}/${part}` : part;
     const existing = app.vault.getAbstractFileByPath(current);
     if (existing instanceof TFile) {
-      throw new Error(`这个路径被同名文件占了：${current}`);
+      throw new Error(`路径已被同名文件占用：${current}`);
     }
     if (!existing) await app.vault.createFolder(current);
   }
@@ -59,7 +59,7 @@ export async function writeNote(
     await app.vault.modify(existing, content);
     return existing;
   }
-  if (existing) throw new Error(`这个路径是个文件夹：${path}`);
+  if (existing) throw new Error(`路径已被文件夹占用：${path}`);
   return app.vault.create(path, content);
 }
 

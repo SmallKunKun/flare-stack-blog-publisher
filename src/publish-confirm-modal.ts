@@ -53,7 +53,7 @@ class PublishActionModal extends Modal {
     this.modalEl.addClass("fsb-confirm-modal");
 
     if (this.allowChoice) {
-      this.titleEl.setText("选择发布类型");
+      this.titleEl.setText("保存或发布");
     } else {
       this.titleEl.setText(publishing ? "确认发布文章" : "确认保存草稿");
     }
@@ -81,12 +81,12 @@ class PublishActionModal extends Modal {
       list,
       "云端文章",
       this.details.postId
-        ? `#${this.details.postId}，会更新已有文章`
+        ? `#${this.details.postId}，将更新该文章`
         : this.allowChoice
-          ? "首次操作，会按标题查重"
+          ? "首次操作，将按标题匹配"
           : publishing
-            ? "首次发布，会按标题查重"
-            : "首次保存，会按标题查重",
+            ? "首次发布，将按标题匹配"
+            : "首次保存，将按标题匹配",
     );
     this.row(list, "本地文件", this.details.path);
 
@@ -95,7 +95,7 @@ class PublishActionModal extends Modal {
       : Number.NaN;
     if (Number.isFinite(time) && time > Date.now()) {
       this.contentEl.createEl("p", {
-        text: "日期晚于现在，发布会被博客拒绝",
+        text: "日期晚于当前时间，发布会失败",
         cls: "fsb-confirm-warning",
       });
     }
@@ -156,7 +156,7 @@ class PublishActionModal extends Modal {
     );
     if (!source) {
       box.createDiv({
-        text: "找不到封面",
+        text: "未找到封面",
         cls: "fsb-confirm-cover-empty",
       });
       return;
