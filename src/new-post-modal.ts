@@ -131,11 +131,6 @@ export class NewPostModal extends Modal {
           }),
       );
 
-    this.coverPreviewEl = this.contentEl.createDiv({
-      cls: "fsb-cover-preview",
-    });
-    this.renderCoverPreview();
-
     this.coverSetting = new Setting(this.contentEl)
       .setName("封面")
       .setDesc(this.coverSummary())
@@ -152,6 +147,11 @@ export class NewPostModal extends Modal {
             this.updateCover();
           });
       });
+
+    this.coverPreviewEl = this.contentEl.createDiv({
+      cls: "fsb-cover-preview",
+    });
+    this.renderCoverPreview();
 
     new Setting(this.contentEl)
       .setName("发布时间")
