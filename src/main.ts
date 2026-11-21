@@ -47,10 +47,12 @@ export default class FlareStackBlogPublisher extends Plugin {
 
   async onload(): Promise<void> {
     await this.loadSettings();
+    this.applyInternalVisibility();
 
     this.register(() => {
       for (const action of this.viewActions) action.remove();
       this.viewActions.clear();
+      document.body.classList.remove("fsb-show-internal");
     });
 
     this.statusBarEl = this.addStatusBarItem();
@@ -664,6 +666,14 @@ export default class FlareStackBlogPublisher extends Plugin {
   async saveSettings(): Promise<void> {
     await this.saveData(this.settings);
     this.updateStatusBar();
+    this.applyInternalVisibility();
+  }
+
+  private applyInternalVisibility(): void {
+    document.body.classList.toggle(
+      "fsb-show-internal",
+      this.settings.showInternalProperties,
+    );
   }
 
   updateStatusBar(): void {

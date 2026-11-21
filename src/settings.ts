@@ -15,6 +15,7 @@ export interface PublisherSettings {
   uuidImageNames: boolean;
   convertWikiLinks: boolean;
   openAfterPublish: boolean;
+  showInternalProperties: boolean;
 }
 
 export const DEFAULT_SETTINGS: PublisherSettings = {
@@ -30,6 +31,7 @@ export const DEFAULT_SETTINGS: PublisherSettings = {
   uuidImageNames: false,
   convertWikiLinks: true,
   openAfterPublish: false,
+  showInternalProperties: false,
 };
 
 export class PublisherSettingTab extends PluginSettingTab {
@@ -223,6 +225,20 @@ export class PublisherSettingTab extends PluginSettingTab {
           .setValue(this.plugin.settings.openAfterPublish)
           .onChange(async (value) => {
             this.plugin.settings.openAfterPublish = value;
+            await this.plugin.saveSettings();
+          }),
+      );
+
+    new Setting(containerEl)
+      .setName("显示内部字段")
+      .setDesc(
+        "在笔记属性里显示 fsb_post_id、fsb_url 这类内部字段，一般不用开。",
+      )
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.showInternalProperties)
+          .onChange(async (value) => {
+            this.plugin.settings.showInternalProperties = value;
             await this.plugin.saveSettings();
           }),
       );

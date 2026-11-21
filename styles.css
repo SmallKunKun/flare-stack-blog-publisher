@@ -187,3 +187,8 @@
   color: var(--text-warning, var(--text-error));
   font-size: var(--font-ui-small);
 }
+
+/* Hide the plugin's own frontmatter fields from the Properties panel. */
+body:not(.fsb-show-internal) .metadata-property[data-property-key^="fsb_"] {
+  display: none !important;
+}
