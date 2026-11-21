@@ -13,6 +13,7 @@ import { NewPostModal } from "./new-post-modal";
 import {
   noteCategory,
   notePostId,
+  notePublishedAt,
   noteTags,
   noteTitle,
   parseNote,
@@ -24,6 +25,7 @@ import {
   confirmPublish,
   type PublishConfirmation,
 } from "./publish-confirm-modal";
+import { PROPERTY_KEYS, migrateProperties } from "./properties";
 import { PublishedAtModal } from "./published-at-modal";
 import {
   findLocalPostFile,
@@ -33,7 +35,6 @@ import {
 import { PullConflictModal } from "./pull-conflict-modal";
 import { PullPostModal } from "./pull-modal";
 import { TaxonomyModal, type TaxonomyValue } from "./taxonomy-modal";
-import { normalizePublishedAt } from "./time";
 import {
   DEFAULT_SETTINGS,
   PublisherSettingTab,
@@ -166,6 +167,17 @@ export default class FlareStackBlogPublisher extends Plugin {
         const file = this.activeMarkdownFile();
         if (!file) return false;
         if (!checking) void this.openTaxonomyModal(file);
+        return true;
+      },
+    });
+
+    this.addCommand({
+      id: "migrate-properties",
+      name: "属性改成中文",
+      checkCallback: (checking) => {
+        const file = this.activeMarkdownFile();
+        if (!file) return false;
+        if (!checking) void this.migrateCurrentProperties(file);
         return true;
       },
     });
@@ -378,7 +390,7 @@ export default class FlareStackBlogPublisher extends Plugin {
         path: file.path,
         category: noteCategory(note.frontmatter) ?? "",
         tags: noteTags(note.frontmatter),
-        publishedAt: normalizePublishedAt(note.frontmatter.publishedAt),
+        publishedAt: notePublishedAt(note.frontmatter),
         postId: notePostId(note.frontmatter),
       };
     } catch (error) {
@@ -533,10 +545,10 @@ export default class FlareStackBlogPublisher extends Plugin {
   private async openPublishedAtModal(file: TFile): Promise<void> {
     try {
       const raw = await this.app.vault.read(file);
-      const current = parseNote(raw).frontmatter.publishedAt;
+      const note = parseNote(raw);
       new PublishedAtModal(
         this.app,
-        normalizePublishedAt(current),
+        notePublishedAt(note.frontmatter),
         (iso) => void this.savePublishedAt(file, iso),
       ).open();
     } catch (error) {
@@ -551,8 +563,9 @@ export default class FlareStackBlogPublisher extends Plugin {
   ): Promise<void> {
     try {
       await this.app.fileManager.processFrontMatter(file, (frontmatter) => {
-        if (iso) frontmatter.publishedAt = iso;
-        else delete frontmatter.publishedAt;
+        if (iso) frontmatter[PROPERTY_KEYS.publishedAt] = iso;
+        else delete frontmatter[PROPERTY_KEYS.publishedAt];
+        delete frontmatter.publishedAt;
       });
       new Notice(iso ? "发布时间已保存。" : "发布时间已清除。");
     } catch (error) {
@@ -586,15 +599,30 @@ export default class FlareStackBlogPublisher extends Plugin {
   ): Promise<void> {
     try {
       await this.app.fileManager.processFrontMatter(file, (frontmatter) => {
-        frontmatter.category = value.category;
-        frontmatter.tags = value.tags;
+        frontmatter[PROPERTY_KEYS.category] = value.category;
+        frontmatter[PROPERTY_KEYS.tags] = value.tags;
+        delete frontmatter.category;
         delete frontmatter.categories;
+        delete frontmatter.tags;
         delete frontmatter.tag;
       });
       new Notice("分类和标签已保存。");
     } catch (error) {
       console.error("Flare Stack Blog save taxonomy failed", error);
       new Notice(`保存分类和标签失败：${describeApiError(error)}`, 8000);
+    }
+  }
+
+  private async migrateCurrentProperties(file: TFile): Promise<void> {
+    try {
+      let changed = false;
+      await this.app.fileManager.processFrontMatter(file, (frontmatter) => {
+        changed = migrateProperties(frontmatter);
+      });
+      new Notice(changed ? "属性已改成中文。" : "没有需要转换的属性。");
+    } catch (error) {
+      console.error("Flare Stack Blog migrate properties failed", error);
+      new Notice(`转换属性失败：${describeApiError(error)}`, 8000);
     }
   }
 

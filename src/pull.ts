@@ -8,6 +8,7 @@ import type { BlogApi } from "./api/client";
 import type { AdminPost, AdminPostListItem } from "./api/types";
 import { mapOutsideCode } from "./markdown-code";
 import { numberValue, parseNote } from "./note";
+import { PROPERTY_KEYS } from "./properties";
 import { beijingIsoNow, toBeijingIso } from "./time";
 import {
   ensureFolder,
@@ -85,12 +86,14 @@ async function buildNoteContent(
   // the category name, and the draft's tags.
   const tags = post.tags && post.tags.length > 0 ? post.tags : item.tags;
   const frontmatter: Record<string, unknown> = {
-    title: post.title,
-    ...(post.summary ? { summary: post.summary } : {}),
-    ...(post.slug ? { slug: post.slug } : {}),
-    ...(publishedAt ? { publishedAt: toBeijingIso(publishedAt) } : {}),
-    category: item.category?.name ?? "",
-    tags: tags.map((tag) => tag.name),
+    [PROPERTY_KEYS.title]: post.title,
+    ...(post.summary ? { [PROPERTY_KEYS.summary]: post.summary } : {}),
+    ...(post.slug ? { [PROPERTY_KEYS.slug]: post.slug } : {}),
+    ...(publishedAt
+      ? { [PROPERTY_KEYS.publishedAt]: toBeijingIso(publishedAt) }
+      : {}),
+    [PROPERTY_KEYS.category]: item.category?.name ?? "",
+    [PROPERTY_KEYS.tags]: tags.map((tag) => tag.name),
     fsb_post_id: post.id,
     ...(publicSlug
       ? {

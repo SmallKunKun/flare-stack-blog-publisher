@@ -105,7 +105,7 @@ export class PublisherSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("默认分类")
-      .setDesc("新建文章时预填，笔记里没有 category 时也会用。留空就不设置。")
+      .setDesc("新建文章时预填，笔记里没有「分类」时也会用。留空就不设置。")
       .addText((text) =>
         text
           .setPlaceholder("随笔")
@@ -118,7 +118,7 @@ export class PublisherSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("默认标签")
-      .setDesc("新建文章时预填，笔记里没有 tags 时也会用。逗号分隔。")
+      .setDesc("新建文章时预填，笔记里没有「标签」时也会用。逗号分隔。")
       .addText((text) =>
         text
           .setPlaceholder("Obsidian, 博客")
@@ -157,7 +157,7 @@ export class PublisherSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("新建文章自动填发布时间")
-      .setDesc("用当前北京时间填 publishedAt，不需要可以关掉。")
+      .setDesc("用当前北京时间填「日期」，不需要可以关掉。")
       .addToggle((toggle) =>
         toggle
           .setValue(this.plugin.settings.autoFillPublishedAt)

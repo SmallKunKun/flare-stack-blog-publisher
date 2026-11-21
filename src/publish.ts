@@ -12,6 +12,7 @@ import {
   hasTagField,
   noteCategory,
   notePostId,
+  notePublishedAt,
   noteSlug,
   noteSummary,
   noteTags,
@@ -23,7 +24,8 @@ import { PostPickerModal, type PostPickerChoice } from "./post-picker";
 import { categoryIdFor, resolveTaxonomy } from "./taxonomy";
 import { uploadBodyImages, uploadCover } from "./media";
 import { convertWikiLinks } from "./links";
-import { beijingIsoNow, normalizePublishedAt } from "./time";
+import { migrateProperties } from "./properties";
+import { beijingIsoNow } from "./time";
 
 export type PublishMode = "publish" | "draft";
 
@@ -59,7 +61,7 @@ export async function publishNote(
   const body = note.body;
   const summary = noteSummary(note.frontmatter);
   const slug = noteSlug(note.frontmatter);
-  const publishedAt = normalizePublishedAt(note.frontmatter.publishedAt);
+  const publishedAt = notePublishedAt(note.frontmatter);
 
   let postId = notePostId(note.frontmatter);
   if (postId === undefined) {
@@ -273,6 +275,7 @@ async function writeBackMetadata(
   postUrl: string | null,
 ): Promise<void> {
   await app.fileManager.processFrontMatter(file, (frontmatter) => {
+    migrateProperties(frontmatter);
     frontmatter.fsb_post_id = postId;
     frontmatter.fsb_updated_at = beijingIsoNow();
     if (postUrl) {

@@ -1,4 +1,5 @@
 import { normalizePath, stringifyYaml, type App, type TFile } from "obsidian";
+import { PROPERTY_KEYS } from "./properties";
 import {
   ensureFolder,
   normalizeFolder,
@@ -29,13 +30,15 @@ export async function createPostNote(
   const path = normalizePath(`${postFolder}/${name}.md`);
 
   const frontmatter = {
-    title,
-    slug: form.slug.trim(),
-    summary: form.summary.trim(),
-    category: form.category.trim(),
-    tags: form.tags,
-    cover: form.cover.trim(),
-    ...(form.publishedAt ? { publishedAt: form.publishedAt } : {}),
+    [PROPERTY_KEYS.title]: title,
+    [PROPERTY_KEYS.slug]: form.slug.trim(),
+    [PROPERTY_KEYS.summary]: form.summary.trim(),
+    [PROPERTY_KEYS.category]: form.category.trim(),
+    [PROPERTY_KEYS.tags]: form.tags,
+    [PROPERTY_KEYS.cover]: form.cover.trim(),
+    ...(form.publishedAt
+      ? { [PROPERTY_KEYS.publishedAt]: form.publishedAt }
+      : {}),
   };
   const content = `---\n${stringifyYaml(frontmatter)}---\n\n`;
 
