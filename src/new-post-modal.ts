@@ -154,14 +154,20 @@ export class NewPostModal extends Modal {
         });
       });
 
-    new Setting(this.contentEl).setName("摘要").addText((text) =>
-      text
-        .setValue(this.summary)
-        .setPlaceholder("选填，显示在列表和搜索里")
-        .onChange((value) => {
-          this.summary = value;
-        }),
-    );
+    const summarySetting = new Setting(this.contentEl)
+      .setName("摘要")
+      .setDesc("选填，显示在列表和搜索里")
+      .addTextArea((text) => {
+        text
+          .setValue(this.summary)
+          .setPlaceholder("写点摘要…")
+          .onChange((value) => {
+            this.summary = value;
+          });
+        text.inputEl.rows = 4;
+        text.inputEl.addClass("fsb-summary-input");
+      });
+    summarySetting.settingEl.addClass("fsb-summary-setting");
 
     const actions = this.contentEl.createDiv({ cls: "fsb-conflict-actions" });
     new ButtonComponent(actions)

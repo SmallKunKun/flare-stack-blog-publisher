@@ -236,3 +236,22 @@ body:not(.fsb-show-internal) .metadata-property[data-property-key^="fsb_"] {
   font-size: var(--font-ui-small);
   padding: 28px;
 }
+
+.fsb-summary-setting {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.fsb-summary-setting .setting-item-info {
+  margin-bottom: 6px;
+}
+
+.fsb-summary-setting .setting-item-control {
+  width: 100%;
+}
+
+.fsb-summary-setting textarea {
+  width: 100%;
+  min-height: 96px;
+  resize: vertical;
+}
