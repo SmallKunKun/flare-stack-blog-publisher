@@ -5,8 +5,6 @@ import { describeApiError } from "./api/errors";
 export interface PublisherSettings {
   siteUrl: string;
   apiKey: string;
-  defaultCategory: string;
-  defaultTags: string;
   pullFolder: string;
   newPostFolder: string;
   autoFillPublishedAt: boolean;
@@ -21,8 +19,6 @@ export interface PublisherSettings {
 export const DEFAULT_SETTINGS: PublisherSettings = {
   siteUrl: "",
   apiKey: "",
-  defaultCategory: "",
-  defaultTags: "",
   pullFolder: "FlareStackBlog",
   newPostFolder: "FlareStackBlog/Drafts",
   autoFillPublishedAt: true,
@@ -50,7 +46,7 @@ export class PublisherSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("博客地址")
-      .setDesc("站点地址，例如 https://blog.example.com，不要带 /api")
+      .setDesc("站点地址，例如 https://blog.example.com")
       .addText((text) =>
         text
           .setPlaceholder("https://blog.example.com")
@@ -62,9 +58,9 @@ export class PublisherSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName("Admin API Key")
+      .setName("API Key")
       .setDesc(
-        "在博客后台的 API Key 页面生成，只显示一次，保存在本机 data.json",
+        "博客后台的 API Key 页面生成",
       )
       .addText((text) => {
         text.inputEl.type = "password";
@@ -79,7 +75,7 @@ export class PublisherSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("测试连接")
-      .setDesc("用当前地址和 Key 读一下文章列表")
+      .setDesc("读取一次文章列表，检查地址和 Key 是否正确")
       .addButton((button) =>
         button.setButtonText("测试连接").onClick(async () => {
           button.setDisabled(true);
@@ -87,7 +83,7 @@ export class PublisherSettingTab extends PluginSettingTab {
           try {
             const api = this.plugin.createApi();
             if (!api.isConfigured) {
-              new Notice("先填 API Key");
+              new Notice("先填写 API Key");
               return;
             }
             const page = await api.listPosts({ limit: 1 });
@@ -104,34 +100,8 @@ export class PublisherSettingTab extends PluginSettingTab {
     containerEl.createEl("h3", { text: "发布" });
 
     new Setting(containerEl)
-      .setName("默认分类")
-      .setDesc("新建文章时预填，笔记里没有「分类」时也会用，留空就不设置")
-      .addText((text) =>
-        text
-          .setPlaceholder("随笔")
-          .setValue(this.plugin.settings.defaultCategory)
-          .onChange(async (value) => {
-            this.plugin.settings.defaultCategory = value.trim();
-            await this.plugin.saveSettings();
-          }),
-      );
-
-    new Setting(containerEl)
-      .setName("默认标签")
-      .setDesc("新建文章时预填，笔记里没有「标签」时也会用，逗号分隔")
-      .addText((text) =>
-        text
-          .setPlaceholder("Obsidian, 博客")
-          .setValue(this.plugin.settings.defaultTags)
-          .onChange(async (value) => {
-            this.plugin.settings.defaultTags = value;
-            await this.plugin.saveSettings();
-          }),
-      );
-
-    new Setting(containerEl)
       .setName("拉取目录")
-      .setDesc("拉取的文章放这里，一篇一个文件夹")
+      .setDesc("拉取文章的存放目录，一篇一个文件夹")
       .addText((text) =>
         text
           .setPlaceholder("FlareStackBlog")
@@ -144,7 +114,7 @@ export class PublisherSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("新建文章目录")
-      .setDesc("新建的文章放这里，一篇一个文件夹")
+      .setDesc("新建文章的存放位置，一篇一个文件夹")
       .addText((text) =>
         text
           .setPlaceholder("FlareStackBlog/Drafts")
@@ -156,8 +126,8 @@ export class PublisherSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName("新建文章自动填发布时间")
-      .setDesc("用当前北京时间填「日期」，不需要可以关掉")
+      .setName("自动填写发布时间")
+      .setDesc("根据笔记的创建时间生成发布时间")
       .addToggle((toggle) =>
         toggle
           .setValue(this.plugin.settings.autoFillPublishedAt)
@@ -181,7 +151,7 @@ export class PublisherSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("上传本地图片")
-      .setDesc("发布时把本地图片传到媒体库，并换成博客地址")
+      .setDesc("发布时把本地图片上传到媒体库，并换成博客地址")
       .addToggle((toggle) =>
         toggle
           .setValue(this.plugin.settings.uploadLocalImages)
@@ -194,7 +164,7 @@ export class PublisherSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName("UUID 文件名")
       .setDesc(
-        "上传时用 UUID 当文件名，例如 3c9a1f7e-5b2d-4a8c-9e6f-1d4b7a2c8e90.png，本地文件不动，同一张图复用同一个名字",
+        "上传图片时使用 UUID 文件名，同一张图复用同一个名字",
       )
       .addToggle((toggle) =>
         toggle
@@ -232,7 +202,7 @@ export class PublisherSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName("显示内部字段")
       .setDesc(
-        "在笔记属性里显示 fsb_post_id、fsb_url 这类内部字段，一般不用开",
+        "在笔记属性里显示内部字段",
       )
       .addToggle((toggle) =>
         toggle

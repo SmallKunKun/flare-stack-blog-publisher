@@ -42,8 +42,6 @@ export class NewPostModal extends Modal {
     app: App,
     private readonly api: BlogApi | null,
     autoFillPublishedAt: boolean,
-    defaultCategory: string,
-    defaultTags: string[],
     private readonly onSubmit: (form: NewPostForm) => void,
     options: NewPostModalOptions = {},
   ) {
@@ -65,8 +63,6 @@ export class NewPostModal extends Modal {
           ? beijingDateTimeLocalValue(date)
           : "";
     } else {
-      this.category = defaultCategory.trim();
-      this.tags = [...defaultTags];
       this.publishedAt = autoFillPublishedAt
         ? beijingDateTimeLocalValue()
         : "";

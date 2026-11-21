@@ -18,7 +18,6 @@ import {
   noteTags,
   noteTitle,
   parseNote,
-  stringList,
 } from "./note";
 import { PostPickerModal, type PostPickerChoice } from "./post-picker";
 import { categoryIdFor, resolveTaxonomy } from "./taxonomy";
@@ -70,7 +69,6 @@ export async function publishNote(
     if (choice.kind === "post") postId = choice.post.id;
   }
 
-  const created = postId === undefined;
   const warnings: string[] = [];
 
   let publishBody = body;
@@ -97,17 +95,11 @@ export async function publishNote(
     ? await uploadCover(app, api, note.frontmatter, file.path, mediaOptions)
     : { mediaId: undefined, warnings: [] };
   warnings.push(...cover.warnings);
-  const defaultTags = stringList(settings.defaultTags);
   const categoryName = hasCategoryField(note.frontmatter)
     ? (noteCategory(note.frontmatter) ?? "")
-    : created && settings.defaultCategory.trim()
-      ? settings.defaultCategory.trim()
-      : undefined;
-  const syncTags =
-    hasTagField(note.frontmatter) || (created && defaultTags.length > 0);
-  const tagNames = hasTagField(note.frontmatter)
-    ? noteTags(note.frontmatter)
-    : defaultTags;
+    : undefined;
+  const syncTags = hasTagField(note.frontmatter);
+  const tagNames = syncTags ? noteTags(note.frontmatter) : [];
 
   const taxonomy = await resolveTaxonomy(api, {
     categoryName,

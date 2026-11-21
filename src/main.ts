@@ -20,7 +20,6 @@ import {
   noteTags,
   noteTitle,
   parseNote,
-  stringList,
   stringValue,
 } from "./note";
 import { postUrlOf, publishNote, type PublishMode } from "./publish";
@@ -580,8 +579,6 @@ export default class FlareStackBlogPublisher extends Plugin {
       this.app,
       this.tryCreateApi(),
       this.settings.autoFillPublishedAt,
-      this.settings.defaultCategory,
-      stringList(this.settings.defaultTags),
       (form) => {
         void this.createNewPost(form);
       },
@@ -621,8 +618,6 @@ export default class FlareStackBlogPublisher extends Plugin {
         this.app,
         this.tryCreateApi(),
         false,
-        "",
-        [],
         (form) => void this.saveArticleInfo(file, form),
         { mode: "edit", initial, sourcePath: file.path },
       ).open();
