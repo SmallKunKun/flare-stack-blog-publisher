@@ -274,7 +274,7 @@ export class NewPostModal extends Modal {
   private submit(): void {
     const title = this.title.trim();
     if (!title) {
-      new Notice("标题不能为空。");
+      new Notice("标题不能为空");
       this.titleInput?.focus();
       return;
     }

@@ -112,7 +112,7 @@ export async function uploadCover(
   const raw = frontmatter.cover ?? frontmatter.cover_image ?? frontmatter.image;
   const value = Array.isArray(raw) ? raw[0] : raw;
   if (typeof value !== "string") {
-    return { mediaId: undefined, warnings: ["封面不是图片路径，保留原封面。"] };
+    return { mediaId: undefined, warnings: ["封面不是图片路径，保留原封面"] };
   }
 
   const trimmed = value.trim();

@@ -3,7 +3,7 @@
   "name": "Flare Stack Blog Publisher",
   "version": "0.1.0",
   "minAppVersion": "1.5.7",
-  "description": "Publish notes from Obsidian to Flare Stack Blog.",
+  "description": "Publish notes from Obsidian to Flare Stack Blog",
   "author": "Flare Stack Blog Publisher contributors",
   "isDesktopOnly": false
 }

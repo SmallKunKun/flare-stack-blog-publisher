@@ -51,15 +51,15 @@ class PublishActionModal extends Modal {
     if (this.allowChoice) {
       this.titleEl.setText("保存还是发布？");
       this.contentEl.createEl("p", {
-        text: "保存草稿不会公开，发布后会直接上线。",
+        text: "保存草稿不会公开，发布后会直接上线",
         cls: "fsb-confirm-hint",
       });
     } else {
       this.titleEl.setText(publishing ? "确认发布" : "确认保存草稿");
       this.contentEl.createEl("p", {
         text: publishing
-          ? "发布后文章会公开到博客。"
-          : "只保存到博客草稿，不会公开。",
+          ? "发布后文章会公开到博客"
+          : "只保存到博客草稿，不会公开",
         cls: "fsb-confirm-hint",
       });
     }
@@ -97,7 +97,7 @@ class PublishActionModal extends Modal {
       : Number.NaN;
     if (Number.isFinite(time) && time > Date.now()) {
       this.contentEl.createEl("p", {
-        text: "日期晚于现在，发布会被博客拒绝。",
+        text: "日期晚于现在，发布会被博客拒绝",
         cls: "fsb-confirm-warning",
       });
     }

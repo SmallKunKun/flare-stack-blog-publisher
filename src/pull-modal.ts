@@ -72,13 +72,13 @@ export class PullPostModal extends Modal {
 
   private render(items: AdminPostListItem[], total: number): void {
     if (items.length === 0) {
-      this.statusEl.setText("没找到文章。");
+      this.statusEl.setText("没找到文章");
       return;
     }
 
     this.statusEl.setText(
       total > items.length
-        ? `共 ${total} 篇，先显示最近 ${items.length} 篇。输入关键词继续筛。`
+        ? `共 ${total} 篇，先显示最近 ${items.length} 篇，输入关键词继续筛`
         : `共 ${total} 篇`,
     );
 

@@ -50,7 +50,7 @@ export class PublisherSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("博客地址")
-      .setDesc("站点地址，例如 https://blog.example.com，不要带 /api。")
+      .setDesc("站点地址，例如 https://blog.example.com，不要带 /api")
       .addText((text) =>
         text
           .setPlaceholder("https://blog.example.com")
@@ -64,7 +64,7 @@ export class PublisherSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName("Admin API Key")
       .setDesc(
-        "在博客后台的 API Key 页面生成，只显示一次。保存在本机 data.json。",
+        "在博客后台的 API Key 页面生成，只显示一次，保存在本机 data.json",
       )
       .addText((text) => {
         text.inputEl.type = "password";
@@ -79,7 +79,7 @@ export class PublisherSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("测试连接")
-      .setDesc("用当前地址和 Key 读一下文章列表。")
+      .setDesc("用当前地址和 Key 读一下文章列表")
       .addButton((button) =>
         button.setButtonText("测试连接").onClick(async () => {
           button.setDisabled(true);
@@ -87,11 +87,11 @@ export class PublisherSettingTab extends PluginSettingTab {
           try {
             const api = this.plugin.createApi();
             if (!api.isConfigured) {
-              new Notice("先填 API Key。");
+              new Notice("先填 API Key");
               return;
             }
             const page = await api.listPosts({ limit: 1 });
-            new Notice(`连接正常，博客里有 ${page.total} 篇文章。`);
+            new Notice(`连接正常，博客里有 ${page.total} 篇文章`);
           } catch (error) {
             new Notice(`连接失败：${describeApiError(error)}`, 8000);
           } finally {
@@ -105,7 +105,7 @@ export class PublisherSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("默认分类")
-      .setDesc("新建文章时预填，笔记里没有「分类」时也会用。留空就不设置。")
+      .setDesc("新建文章时预填，笔记里没有「分类」时也会用，留空就不设置")
       .addText((text) =>
         text
           .setPlaceholder("随笔")
@@ -118,7 +118,7 @@ export class PublisherSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("默认标签")
-      .setDesc("新建文章时预填，笔记里没有「标签」时也会用。逗号分隔。")
+      .setDesc("新建文章时预填，笔记里没有「标签」时也会用，逗号分隔")
       .addText((text) =>
         text
           .setPlaceholder("Obsidian, 博客")
@@ -131,7 +131,7 @@ export class PublisherSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("拉取目录")
-      .setDesc("拉取的文章放这里，一篇一个文件夹。")
+      .setDesc("拉取的文章放这里，一篇一个文件夹")
       .addText((text) =>
         text
           .setPlaceholder("FlareStackBlog")
@@ -144,7 +144,7 @@ export class PublisherSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("新建文章目录")
-      .setDesc("新建的文章放这里，一篇一个文件夹。")
+      .setDesc("新建的文章放这里，一篇一个文件夹")
       .addText((text) =>
         text
           .setPlaceholder("FlareStackBlog/Drafts")
@@ -157,7 +157,7 @@ export class PublisherSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("新建文章自动填发布时间")
-      .setDesc("用当前北京时间填「日期」，不需要可以关掉。")
+      .setDesc("用当前北京时间填「日期」，不需要可以关掉")
       .addToggle((toggle) =>
         toggle
           .setValue(this.plugin.settings.autoFillPublishedAt)
@@ -169,7 +169,7 @@ export class PublisherSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("自动创建分类和标签")
-      .setDesc("分类或标签不存在时自动建。关掉就只用现有的。")
+      .setDesc("分类或标签不存在时自动建，关掉就只用现有的")
       .addToggle((toggle) =>
         toggle
           .setValue(this.plugin.settings.autoCreateTaxonomy)
@@ -181,7 +181,7 @@ export class PublisherSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("上传本地图片")
-      .setDesc("发布时把本地图片传到媒体库，并换成博客地址。")
+      .setDesc("发布时把本地图片传到媒体库，并换成博客地址")
       .addToggle((toggle) =>
         toggle
           .setValue(this.plugin.settings.uploadLocalImages)
@@ -194,7 +194,7 @@ export class PublisherSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName("UUID 文件名")
       .setDesc(
-        "上传时用 UUID 当文件名，例如 3c9a1f7e-5b2d-4a8c-9e6f-1d4b7a2c8e90.png。本地文件不动，同一张图复用同一个名字。",
+        "上传时用 UUID 当文件名，例如 3c9a1f7e-5b2d-4a8c-9e6f-1d4b7a2c8e90.png，本地文件不动，同一张图复用同一个名字",
       )
       .addToggle((toggle) =>
         toggle
@@ -207,7 +207,7 @@ export class PublisherSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("转换双链")
-      .setDesc("把 [[笔记]] 换成博客链接。没发布的笔记只保留文字。")
+      .setDesc("把 [[笔记]] 换成博客链接，没发布的笔记只保留文字")
       .addToggle((toggle) =>
         toggle
           .setValue(this.plugin.settings.convertWikiLinks)
@@ -219,7 +219,7 @@ export class PublisherSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("发布后打开网页")
-      .setDesc("发布完用浏览器打开文章。")
+      .setDesc("发布完用浏览器打开文章")
       .addToggle((toggle) =>
         toggle
           .setValue(this.plugin.settings.openAfterPublish)
@@ -232,7 +232,7 @@ export class PublisherSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName("显示内部字段")
       .setDesc(
-        "在笔记属性里显示 fsb_post_id、fsb_url 这类内部字段，一般不用开。",
+        "在笔记属性里显示 fsb_post_id、fsb_url 这类内部字段，一般不用开",
       )
       .addToggle((toggle) =>
         toggle
@@ -244,6 +244,6 @@ export class PublisherSettingTab extends PluginSettingTab {
       );
 
     const privacy = containerEl.createEl("p", { cls: "setting-item-description" });
-    privacy.setText("只连你填的博客地址。代码里没有站点、Key 或账号信息。");
+    privacy.setText("只连你填的博客地址，代码里没有站点、Key 或账号信息");
   }
 }

@@ -30,7 +30,7 @@ export function toBlogApiError(error: unknown): BlogApiError {
 export function describeApiError(error: unknown): string {
   const apiError = toBlogApiError(error);
   if (apiError.code === "PUBLISHED_AT_IN_FUTURE") {
-    return "日期不能晚于现在。";
+    return "日期不能晚于现在";
   }
   const suffix = apiError.status > 0 ? `（HTTP ${apiError.status}）` : "";
   return `${apiError.message}${suffix}`;

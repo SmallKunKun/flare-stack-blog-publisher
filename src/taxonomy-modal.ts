@@ -129,7 +129,7 @@ export class TaxonomyModal extends Modal {
 
   private async load(): Promise<void> {
     if (!this.api) {
-      this.statusEl.setText("还没连接博客，先手动输入。");
+      this.statusEl.setText("还没连接博客，先手动输入");
       this.renderCategoryChips();
       this.renderTagChips();
       return;
@@ -146,14 +146,14 @@ export class TaxonomyModal extends Modal {
       this.categories = categories;
       this.existingTags = tags;
       this.statusEl.setText(
-        `已有 ${categories.length} 个分类，${tags.length} 个标签。`,
+        `已有 ${categories.length} 个分类，${tags.length} 个标签`,
       );
       this.renderCategoryChips();
       this.renderTagChips();
     } catch (error) {
       if (this.closed) return;
       this.statusEl.setText(
-        `读取失败：${describeApiError(error)}，可以先手动输入。`,
+        `读取失败：${describeApiError(error)}，可以先手动输入`,
       );
       this.renderCategoryChips();
       this.renderTagChips();
@@ -166,7 +166,7 @@ export class TaxonomyModal extends Modal {
 
     if (this.categories.length === 0) {
       this.categoryChipsEl.createEl("span", {
-        text: this.api ? "云端还没有分类。" : "连上博客后可以选已有分类。",
+        text: this.api ? "云端还没有分类" : "连上博客后可以选已有分类",
         cls: "fsb-taxonomy-empty",
       });
       return;
@@ -212,7 +212,7 @@ export class TaxonomyModal extends Modal {
       title: "删除分类",
       message:
         `删除「${category.name}」？所有用这个分类的文章都会失去分类，` +
-        "分类页面地址也会失效。笔记里如果还留着这个名字，发布或存草稿时可能会重新创建。",
+        "分类页面地址也会失效，笔记里如果还留着这个名字，发布或存草稿时可能会重新创建",
       confirmText: "删除分类",
     });
     if (!confirmed || !this.api) return;
@@ -225,7 +225,7 @@ export class TaxonomyModal extends Modal {
         if (this.categoryInput) this.categoryInput.value = "";
       }
       this.renderCategoryChips();
-      new Notice("分类已删除。");
+      new Notice("分类已删除");
     } catch (error) {
       new Notice(`删除分类失败：${describeApiError(error)}`, 8000);
     }
@@ -241,14 +241,14 @@ export class TaxonomyModal extends Modal {
 
     if (this.existingTags.length === 0) {
       this.tagChipsEl.createEl("span", {
-        text: this.api ? "云端还没有标签。" : "连上博客后可以选已有标签。",
+        text: this.api ? "云端还没有标签" : "连上博客后可以选已有标签",
         cls: "fsb-taxonomy-empty",
       });
       return;
     }
     if (tags.length === 0) {
       this.tagChipsEl.createEl("span", {
-        text: "没有匹配的标签。",
+        text: "没有匹配的标签",
         cls: "fsb-taxonomy-empty",
       });
       return;
@@ -294,7 +294,7 @@ export class TaxonomyModal extends Modal {
       title: "删除标签",
       message:
         `删除「${tag.name}」？所有用这个标签的文章都会失去标签，` +
-        "标签页面地址也会失效。笔记里如果还留着这个名字，发布或存草稿时可能会重新创建。",
+        "标签页面地址也会失效，笔记里如果还留着这个名字，发布或存草稿时可能会重新创建",
       confirmText: "删除标签",
     });
     if (!confirmed || !this.api) return;
@@ -308,7 +308,7 @@ export class TaxonomyModal extends Modal {
       this.tagsText = remaining.join(", ");
       if (this.tagInput) this.tagInput.value = this.tagsText;
       this.renderTagChips();
-      new Notice("标签已删除。");
+      new Notice("标签已删除");
     } catch (error) {
       new Notice(`删除标签失败：${describeApiError(error)}`, 8000);
     }

@@ -1,7 +1,7 @@
 {
   "name": "obsidian-flare-stack-blog-publisher",
   "version": "0.1.0",
-  "description": "Publish notes from Obsidian to Flare Stack Blog.",
+  "description": "Publish notes from Obsidian to Flare Stack Blog",
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs",

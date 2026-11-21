@@ -13,10 +13,10 @@ export class PullConflictModal extends Modal {
   onOpen(): void {
     this.titleEl.setText("文章已在本地");
     this.contentEl.createEl("p", {
-      text: `本地已经有《${this.postTitle}》。`,
+      text: `本地已经有《${this.postTitle}》`,
     });
     this.contentEl.createEl("p", {
-      text: "覆盖会丢掉本地还没发布的修改。",
+      text: "覆盖会丢掉本地还没发布的修改",
       cls: "mod-warning",
     });
 

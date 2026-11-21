@@ -45,7 +45,7 @@ export async function resolveTaxonomy(
         const created = await api.createCategory(name);
         category = { action: "set", id: created.id };
       } else {
-        warnings.push(`分类「${name}」不存在，保留原分类。`);
+        warnings.push(`分类「${name}」不存在，保留原分类`);
       }
     }
   }

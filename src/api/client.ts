@@ -239,7 +239,7 @@ export class BlogApi {
 export function normalizeSiteUrl(input: string): string {
   const trimmed = input.trim();
   if (!trimmed) {
-    throw new BlogApiError("还没填博客地址。");
+    throw new BlogApiError("还没填博客地址");
   }
   const withProtocol = /^https?:\/\//i.test(trimmed)
     ? trimmed
@@ -251,7 +251,7 @@ export function normalizeSiteUrl(input: string): string {
     throw new BlogApiError(`博客地址不对：${input}`);
   }
   if (url.protocol !== "https:" && url.protocol !== "http:") {
-    throw new BlogApiError("博客地址要以 http:// 或 https:// 开头。");
+    throw new BlogApiError("博客地址要以 http:// 或 https:// 开头");
   }
   return url.origin;
 }
@@ -267,7 +267,7 @@ function parsePayload(text: string): unknown {
 
 function networkErrorMessage(error: unknown): string {
   const detail = error instanceof Error ? error.message : String(error);
-  return `连不上博客，检查地址、网络和 API Key。${detail ? `（${detail}）` : ""}`;
+  return `连不上博客，检查地址、网络和 API Key${detail ? `（${detail}）` : ""}`;
 }
 
 function escapeFileName(fileName: string): string {
