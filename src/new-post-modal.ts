@@ -80,9 +80,12 @@ export class NewPostModal extends Modal {
       .setDesc("必填")
       .addText((text) => {
         this.titleInput = text.inputEl;
-        text.setPlaceholder("文章标题").onChange((value) => {
-          this.title = value;
-        });
+        text
+          .setValue(this.title)
+          .setPlaceholder("文章标题")
+          .onChange((value) => {
+            this.title = value;
+          });
         text.inputEl.addEventListener("keydown", (event) => {
           if (event.key === "Enter") {
             event.preventDefault();
@@ -93,6 +96,7 @@ export class NewPostModal extends Modal {
 
     new Setting(this.contentEl).setName("摘要").addText((text) =>
       text
+        .setValue(this.summary)
         .setPlaceholder("选填，显示在列表和搜索里")
         .onChange((value) => {
           this.summary = value;
@@ -107,21 +111,27 @@ export class NewPostModal extends Modal {
       );
 
     new Setting(this.contentEl)
-      .setName("Slug")
+      .setName("链接")
       .setDesc("留空自动生成")
       .addText((text) =>
-        text.setPlaceholder("custom-url-slug").onChange((value) => {
-          this.slug = value;
-        }),
+        text
+          .setValue(this.slug)
+          .setPlaceholder("custom-url-slug")
+          .onChange((value) => {
+            this.slug = value;
+          }),
       );
 
     new Setting(this.contentEl)
       .setName("封面")
       .setDesc("选填，本地图片路径")
       .addText((text) =>
-        text.setPlaceholder("attachments/cover.png").onChange((value) => {
-          this.cover = value;
-        }),
+        text
+          .setValue(this.cover)
+          .setPlaceholder("attachments/cover.png")
+          .onChange((value) => {
+            this.cover = value;
+          }),
       );
 
     new Setting(this.contentEl)
