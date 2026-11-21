@@ -3,12 +3,11 @@ import {
   Modal,
   Notice,
   Setting,
-  TFile,
-  normalizePath,
   type App,
 } from "obsidian";
 import type { BlogApi } from "./api/client";
 import type { NewPostForm } from "./create-post";
+import { coverSource } from "./cover";
 import { ImagePickerModal } from "./image-picker";
 import { TaxonomyModal } from "./taxonomy-modal";
 import {
@@ -228,7 +227,7 @@ export class NewPostModal extends Modal {
       return;
     }
 
-    const source = this.coverSource(this.cover);
+    const source = coverSource(this.app, this.cover, this.sourcePath);
     if (!source) {
       this.coverPreviewEl.createDiv({
         text: "找不到封面图片",
@@ -248,23 +247,6 @@ export class NewPostModal extends Modal {
         cls: "fsb-cover-preview-empty",
       });
     });
-  }
-
-  private coverSource(value: string): string | null {
-    const trimmed = value.trim();
-    if (!trimmed) return null;
-    if (/^(?:https?:|data:)/i.test(trimmed)) return trimmed;
-
-    const wiki = trimmed.match(/^!?\[\[([^\]|]+)(?:\|[^\]]*)?\]\]$/);
-    const target = wiki?.[1]?.trim() ?? trimmed;
-    const file =
-      this.app.metadataCache.getFirstLinkpathDest(target, this.sourcePath) ??
-      this.app.vault.getAbstractFileByPath(normalizePath(target)) ??
-      this.app.vault
-        .getFiles()
-        .find((item) => item.path === target || item.name === target);
-
-    return file instanceof TFile ? this.app.vault.getResourcePath(file) : null;
   }
 
   private submit(): void {

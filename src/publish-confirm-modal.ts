@@ -1,10 +1,14 @@
 import { ButtonComponent, Modal, type App } from "obsidian";
+import { coverSource } from "./cover";
 import type { PublishMode } from "./publish";
 import { formatBeijingTime } from "./time";
 
 export interface PublishConfirmation {
   mode: PublishMode;
   title: string;
+  summary: string;
+  slug: string;
+  cover: string;
   path: string;
   category: string;
   tags: string[];
@@ -64,14 +68,18 @@ class PublishActionModal extends Modal {
       });
     }
 
+    this.renderCover();
+
     const list = this.contentEl.createDiv({ cls: "fsb-confirm-list" });
     this.row(list, "标题", this.details.title);
-    this.row(list, "分类", this.details.category || "无");
+    this.row(list, "摘要", this.details.summary || "无");
+    this.row(list, "分类", this.details.category || "不设置");
     this.row(
       list,
       "标签",
       this.details.tags.length > 0 ? this.details.tags.join("、") : "无",
     );
+    this.row(list, "链接", this.details.slug || "自动生成");
     this.row(
       list,
       "日期",
@@ -138,5 +146,41 @@ class PublishActionModal extends Modal {
     const row = parent.createDiv({ cls: "fsb-confirm-row" });
     row.createEl("span", { text: label, cls: "fsb-confirm-label" });
     row.createEl("span", { text: value, cls: "fsb-confirm-value" });
+  }
+
+  private renderCover(): void {
+    const box = this.contentEl.createDiv({ cls: "fsb-confirm-cover" });
+
+    if (!this.details.cover) {
+      box.createDiv({
+        text: "未设置封面",
+        cls: "fsb-confirm-cover-empty",
+      });
+      return;
+    }
+
+    const source = coverSource(
+      this.app,
+      this.details.cover,
+      this.details.path,
+    );
+    if (!source) {
+      box.createDiv({
+        text: "找不到封面",
+        cls: "fsb-confirm-cover-empty",
+      });
+      return;
+    }
+
+    const image = box.createEl("img", {
+      attr: { src: source, alt: "封面预览" },
+    });
+    image.addEventListener("error", () => {
+      box.empty();
+      box.createDiv({
+        text: "图片加载失败",
+        cls: "fsb-confirm-cover-empty",
+      });
+    });
   }
 }

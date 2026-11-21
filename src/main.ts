@@ -492,6 +492,9 @@ export default class FlareStackBlogPublisher extends Plugin {
     return {
       mode,
       title: noteTitle(note.frontmatter, file.basename),
+      summary: noteSummary(note.frontmatter) ?? "",
+      slug: noteSlug(note.frontmatter) ?? "",
+      cover: noteCover(note.frontmatter) ?? "",
       path: file.path,
       category: noteCategory(note.frontmatter) ?? "",
       tags: noteTags(note.frontmatter),
