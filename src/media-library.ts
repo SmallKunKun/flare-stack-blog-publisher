@@ -267,12 +267,36 @@ export class MediaLibraryModal extends Modal {
 
   private async copy(media: Media): Promise<void> {
     const url = absoluteMediaUrl(this.api.siteOrigin, media.url);
-    try {
-      await navigator.clipboard.writeText(url);
+    if (await copyText(url)) {
       new Notice("链接已复制");
-    } catch {
+    } else {
       new Notice("复制链接失败");
     }
+  }
+}
+
+async function copyText(text: string): Promise<boolean> {
+  if (navigator.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      // Fall back to the textarea method below.
+    }
+  }
+
+  const area = document.createElement("textarea");
+  area.value = text;
+  area.style.position = "fixed";
+  area.style.opacity = "0";
+  document.body.appendChild(area);
+  area.select();
+  try {
+    return document.execCommand("copy");
+  } catch {
+    return false;
+  } finally {
+    area.remove();
   }
 }
 

@@ -50,7 +50,7 @@ import { normalizeFolder } from "./vault-paths";
 
 export default class FlareStackBlogPublisher extends Plugin {
   settings: PublisherSettings = { ...DEFAULT_SETTINGS };
-  private statusBarEl!: HTMLElement;
+  private statusBarEl: HTMLElement | null = null;
   private readonly viewActions = new Set<HTMLElement>();
 
   async onload(): Promise<void> {
@@ -63,11 +63,14 @@ export default class FlareStackBlogPublisher extends Plugin {
       document.body.classList.remove("fsb-show-internal");
     });
 
-    this.statusBarEl = this.addStatusBarItem();
-    this.statusBarEl.addClass("fsb-status-bar");
-    this.statusBarEl.addEventListener("click", (event) =>
-      this.onStatusBarClick(event),
-    );
+    const statusBar = this.addStatusBarItem();
+    if (statusBar) {
+      this.statusBarEl = statusBar;
+      statusBar.addClass("fsb-status-bar");
+      statusBar.addEventListener("click", (event) =>
+        this.onStatusBarClick(event),
+      );
+    }
     this.updateStatusBar();
 
     this.addSettingTab(new PublisherSettingTab(this.app, this));
