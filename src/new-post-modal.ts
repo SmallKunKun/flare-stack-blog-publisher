@@ -103,34 +103,6 @@ export class NewPostModal extends Modal {
         });
       });
 
-    new Setting(this.contentEl).setName("摘要").addText((text) =>
-      text
-        .setValue(this.summary)
-        .setPlaceholder("选填，显示在列表和搜索里")
-        .onChange((value) => {
-          this.summary = value;
-        }),
-    );
-
-    this.taxonomySetting = new Setting(this.contentEl)
-      .setName("分类和标签")
-      .setDesc(this.taxonomySummary())
-      .addButton((button) =>
-        button.setButtonText("选择…").onClick(() => this.pickTaxonomy()),
-      );
-
-    new Setting(this.contentEl)
-      .setName("链接")
-      .setDesc("留空自动生成")
-      .addText((text) =>
-        text
-          .setValue(this.slug)
-          .setPlaceholder("custom-url-slug")
-          .onChange((value) => {
-            this.slug = value;
-          }),
-      );
-
     this.coverSetting = new Setting(this.contentEl)
       .setName("封面")
       .setDesc(this.coverSummary())
@@ -153,8 +125,27 @@ export class NewPostModal extends Modal {
     });
     this.renderCoverPreview();
 
+    this.taxonomySetting = new Setting(this.contentEl)
+      .setName("分类和标签")
+      .setDesc(this.taxonomySummary())
+      .addButton((button) =>
+        button.setButtonText("选择…").onClick(() => this.pickTaxonomy()),
+      );
+
     new Setting(this.contentEl)
-      .setName("发布时间")
+      .setName("链接")
+      .setDesc("留空自动生成")
+      .addText((text) =>
+        text
+          .setValue(this.slug)
+          .setPlaceholder("custom-url-slug")
+          .onChange((value) => {
+            this.slug = value;
+          }),
+      );
+
+    new Setting(this.contentEl)
+      .setName("日期")
       .setDesc("北京时间，留空就不填")
       .addText((text) => {
         text.inputEl.type = "datetime-local";
@@ -162,6 +153,15 @@ export class NewPostModal extends Modal {
           this.publishedAt = value;
         });
       });
+
+    new Setting(this.contentEl).setName("摘要").addText((text) =>
+      text
+        .setValue(this.summary)
+        .setPlaceholder("选填，显示在列表和搜索里")
+        .onChange((value) => {
+          this.summary = value;
+        }),
+    );
 
     const actions = this.contentEl.createDiv({ cls: "fsb-conflict-actions" });
     new ButtonComponent(actions)

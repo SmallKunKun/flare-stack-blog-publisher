@@ -90,14 +90,14 @@ async function buildNoteContent(
     : "";
   const frontmatter: Record<string, unknown> = {
     [PROPERTY_KEYS.title]: post.title,
-    ...(post.summary ? { [PROPERTY_KEYS.summary]: post.summary } : {}),
+    [PROPERTY_KEYS.cover]: coverUrl,
+    [PROPERTY_KEYS.category]: item.category?.name ?? "",
+    [PROPERTY_KEYS.tags]: tags.map((tag) => tag.name),
     ...(post.slug ? { [PROPERTY_KEYS.slug]: post.slug } : {}),
     ...(publishedAt
       ? { [PROPERTY_KEYS.publishedAt]: toBeijingIso(publishedAt) }
       : {}),
-    [PROPERTY_KEYS.category]: item.category?.name ?? "",
-    [PROPERTY_KEYS.tags]: tags.map((tag) => tag.name),
-    [PROPERTY_KEYS.cover]: coverUrl,
+    ...(post.summary ? { [PROPERTY_KEYS.summary]: post.summary } : {}),
     fsb_post_id: post.id,
     ...(publicSlug
       ? {

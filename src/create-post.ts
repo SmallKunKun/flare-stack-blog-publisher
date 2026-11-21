@@ -31,14 +31,14 @@ export async function createPostNote(
 
   const frontmatter = {
     [PROPERTY_KEYS.title]: title,
-    [PROPERTY_KEYS.slug]: form.slug.trim(),
-    [PROPERTY_KEYS.summary]: form.summary.trim(),
+    [PROPERTY_KEYS.cover]: form.cover.trim(),
     [PROPERTY_KEYS.category]: form.category.trim(),
     [PROPERTY_KEYS.tags]: form.tags,
-    [PROPERTY_KEYS.cover]: form.cover.trim(),
+    [PROPERTY_KEYS.slug]: form.slug.trim(),
     ...(form.publishedAt
       ? { [PROPERTY_KEYS.publishedAt]: form.publishedAt }
       : {}),
+    [PROPERTY_KEYS.summary]: form.summary.trim(),
   };
   const content = `---\n${stringifyYaml(frontmatter)}---\n\n`;
 
