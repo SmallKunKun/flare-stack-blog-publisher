@@ -39,10 +39,6 @@
   margin-top: 6px;
 }
 
-.fsb-taxonomy-search {
-  width: 100%;
-}
-
 .fsb-taxonomy-chips {
   display: flex;
   flex-wrap: wrap;
@@ -261,7 +257,7 @@ body:not(.fsb-show-internal) .metadata-property[data-property-key^="fsb_"] {
   font-size: var(--font-ui-medium);
 }
 
-.fsb-taxonomy-category {
+.fsb-taxonomy-chip-section {
   margin: 8px 0 18px;
   padding-bottom: 6px;
 }

@@ -4,7 +4,6 @@ import {
   Modal,
   Notice,
   Setting,
-  TextComponent,
   type App,
 } from "obsidian";
 import type { BlogApi } from "./api/client";
@@ -28,7 +27,6 @@ export class TaxonomyModal extends Modal {
   private tagInput: HTMLInputElement | null = null;
   private tagChipsEl!: HTMLElement;
   private statusEl!: HTMLElement;
-  private tagSearch = "";
   private closed = false;
 
   constructor(
@@ -80,7 +78,7 @@ export class TaxonomyModal extends Modal {
       });
 
     const categoryChipsBox = this.contentEl.createDiv({
-      cls: "fsb-taxonomy-tags fsb-taxonomy-category",
+      cls: "fsb-taxonomy-tags fsb-taxonomy-chip-section",
     });
     categoryChipsBox.createEl("div", {
       text: "已有分类",
@@ -104,13 +102,13 @@ export class TaxonomyModal extends Modal {
           });
       });
 
-    const tagsBox = this.contentEl.createDiv({ cls: "fsb-taxonomy-tags" });
-    const search = new TextComponent(tagsBox);
-    search.setPlaceholder("搜索已有标签").onChange((value) => {
-      this.tagSearch = value;
-      this.renderTagChips();
+    const tagsBox = this.contentEl.createDiv({
+      cls: "fsb-taxonomy-tags fsb-taxonomy-chip-section",
     });
-    search.inputEl.addClass("fsb-taxonomy-search");
+    tagsBox.createEl("div", {
+      text: "已有标签",
+      cls: "fsb-taxonomy-label",
+    });
     this.tagChipsEl = tagsBox.createDiv({ cls: "fsb-taxonomy-chips" });
     this.statusEl = this.contentEl.createDiv({ cls: "fsb-taxonomy-status" });
 
@@ -240,10 +238,6 @@ export class TaxonomyModal extends Modal {
   private renderTagChips(): void {
     this.tagChipsEl.empty();
     const selected = new Set(parseTags(this.tagsText).map((tag) => tag.toLowerCase()));
-    const needle = this.tagSearch.trim().toLowerCase();
-    const tags = this.existingTags.filter(
-      (tag) => !needle || tag.name.toLowerCase().includes(needle),
-    );
 
     if (this.existingTags.length === 0) {
       this.tagChipsEl.createEl("span", {
@@ -252,15 +246,8 @@ export class TaxonomyModal extends Modal {
       });
       return;
     }
-    if (tags.length === 0) {
-      this.tagChipsEl.createEl("span", {
-        text: "没有匹配的标签",
-        cls: "fsb-taxonomy-empty",
-      });
-      return;
-    }
 
-    for (const tag of tags) {
+    for (const tag of this.existingTags) {
       const wrap = this.tagChipsEl.createSpan({
         cls: "fsb-taxonomy-chip-wrap",
       });
