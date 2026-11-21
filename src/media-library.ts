@@ -16,6 +16,11 @@ import { formatBeijingTime } from "./time";
 
 const PAGE_SIZE = 60;
 
+export interface MediaLibraryOptions {
+  selectMode?: boolean;
+  onChoose?: (media: Media) => void;
+}
+
 export class MediaLibraryModal extends Modal {
   private query = "";
   private cursor: number | null = null;
@@ -35,13 +40,14 @@ export class MediaLibraryModal extends Modal {
     app: App,
     private readonly api: BlogApi,
     private readonly renameToUuid: boolean,
+    private readonly options: MediaLibraryOptions = {},
   ) {
     super(app);
   }
 
   onOpen(): void {
     this.modalEl.addClass("fsb-media-modal");
-    this.titleEl.setText("媒体库");
+    this.titleEl.setText(this.options.selectMode ? "选择封面" : "媒体库");
 
     const toolbar = this.contentEl.createDiv({ cls: "fsb-media-toolbar" });
     this.searchInput = new TextComponent(toolbar);
@@ -54,9 +60,11 @@ export class MediaLibraryModal extends Modal {
       });
     this.searchInput.inputEl.addClass("fsb-media-search");
 
-    this.uploadButton = new ButtonComponent(toolbar)
-      .setButtonText("上传本地图片")
-      .onClick(() => this.pickLocalImage());
+    if (!this.options.selectMode) {
+      this.uploadButton = new ButtonComponent(toolbar)
+        .setButtonText("上传本地图片")
+        .onClick(() => this.pickLocalImage());
+    }
 
     this.statusEl = this.contentEl.createDiv({ cls: "fsb-media-status" });
     this.gridEl = this.contentEl.createDiv({ cls: "fsb-media-grid" });
@@ -187,12 +195,23 @@ export class MediaLibraryModal extends Modal {
     });
 
     const actions = card.createDiv({ cls: "fsb-media-actions" });
-    actions
-      .createEl("button", { text: "插入", cls: "fsb-media-action" })
-      .addEventListener("click", () => this.insert(media));
-    actions
-      .createEl("button", { text: "复制链接", cls: "fsb-media-action" })
-      .addEventListener("click", () => void this.copy(media));
+    if (this.options.selectMode) {
+      actions
+        .createEl("button", { text: "选择", cls: "fsb-media-action" })
+        .addEventListener("click", () => this.choose(media));
+    } else {
+      actions
+        .createEl("button", { text: "插入", cls: "fsb-media-action" })
+        .addEventListener("click", () => this.insert(media));
+      actions
+        .createEl("button", { text: "复制链接", cls: "fsb-media-action" })
+        .addEventListener("click", () => void this.copy(media));
+    }
+  }
+
+  private choose(media: Media): void {
+    this.options.onChoose?.(media);
+    this.close();
   }
 
   private renderMore(): void {

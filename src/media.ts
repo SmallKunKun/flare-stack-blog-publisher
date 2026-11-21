@@ -2,6 +2,8 @@ import { normalizePath, type App, type TFile } from "obsidian";
 import type { BlogApi } from "./api/client";
 import type { Media } from "./api/types";
 import { mapOutsideCode } from "./markdown-code";
+import { numberValue } from "./note";
+import { PROPERTY_KEYS } from "./properties";
 import { imageUuidName } from "./uuid";
 
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
@@ -103,13 +105,18 @@ export async function uploadCover(
   options: MediaUploadOptions,
 ): Promise<CoverUploadResult> {
   const hasCover =
+    Object.prototype.hasOwnProperty.call(frontmatter, PROPERTY_KEYS.cover) ||
     Object.prototype.hasOwnProperty.call(frontmatter, "cover") ||
     Object.prototype.hasOwnProperty.call(frontmatter, "cover_image") ||
     Object.prototype.hasOwnProperty.call(frontmatter, "image");
 
   if (!hasCover) return { mediaId: undefined, warnings: [] };
 
-  const raw = frontmatter.cover ?? frontmatter.cover_image ?? frontmatter.image;
+  const raw =
+    frontmatter[PROPERTY_KEYS.cover] ??
+    frontmatter.cover ??
+    frontmatter.cover_image ??
+    frontmatter.image;
   const value = Array.isArray(raw) ? raw[0] : raw;
   if (typeof value !== "string") {
     return { mediaId: undefined, warnings: ["封面不是图片路径，保留原封面"] };
@@ -118,7 +125,10 @@ export async function uploadCover(
   const trimmed = value.trim();
   if (!trimmed) return { mediaId: undefined, warnings: [] };
   if (isRemoteOrMediaPath(trimmed)) {
-    return { mediaId: undefined, warnings: [] };
+    return {
+      mediaId: numberValue(frontmatter.fsb_cover_media_id),
+      warnings: [],
+    };
   }
 
   const target = unwrapWikiLink(trimmed);

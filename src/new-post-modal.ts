@@ -9,6 +9,7 @@ import type { BlogApi } from "./api/client";
 import type { NewPostForm } from "./create-post";
 import { coverSource } from "./cover";
 import { ImagePickerModal } from "./image-picker";
+import { MediaLibraryModal } from "./media-library";
 import { TaxonomyModal } from "./taxonomy-modal";
 import {
   beijingDateTimeLocalValue,
@@ -28,6 +29,7 @@ export class NewPostModal extends Modal {
   private tags: string[] = [];
   private slug = "";
   private cover = "";
+  private coverMediaId: number | undefined;
   private publishedAt: string;
   private titleInput: HTMLInputElement | null = null;
   private taxonomySetting: Setting | null = null;
@@ -56,6 +58,7 @@ export class NewPostModal extends Modal {
       this.tags = [...initial.tags];
       this.slug = initial.slug;
       this.cover = initial.cover;
+      this.coverMediaId = initial.coverMediaId;
       const date = initial.publishedAt ? new Date(initial.publishedAt) : null;
       this.publishedAt =
         date && !Number.isNaN(date.getTime())
@@ -97,6 +100,11 @@ export class NewPostModal extends Modal {
       .addButton((button) =>
         button.setButtonText("选择图片…").onClick(() => this.pickCover()),
       )
+      .addButton((button) =>
+        button
+          .setButtonText("媒体库")
+          .onClick(() => this.pickCoverFromLibrary()),
+      )
       .addButton((button) => {
         this.clearCoverButton = button;
         button
@@ -104,6 +112,7 @@ export class NewPostModal extends Modal {
           .setDisabled(!this.cover)
           .onClick(() => {
             this.cover = "";
+            this.coverMediaId = undefined;
             this.updateCover();
           });
       });
@@ -211,7 +220,27 @@ export class NewPostModal extends Modal {
   private pickCover(): void {
     new ImagePickerModal(this.app, (file) => {
       this.cover = file.path;
+      this.coverMediaId = undefined;
       this.updateCover();
+    }).open();
+  }
+
+  private pickCoverFromLibrary(): void {
+    if (!this.api) {
+      new Notice("先配置博客地址和 API Key");
+      return;
+    }
+
+    const api = this.api;
+    new MediaLibraryModal(this.app, api, false, {
+      selectMode: true,
+      onChoose: (media) => {
+        this.cover = media.url.startsWith("/")
+          ? `${api.siteOrigin}${media.url}`
+          : media.url;
+        this.coverMediaId = media.id;
+        this.updateCover();
+      },
     }).open();
   }
 
@@ -264,6 +293,7 @@ export class NewPostModal extends Modal {
       tags: this.tags,
       slug: this.slug,
       cover: this.cover,
+      coverMediaId: this.coverMediaId,
       publishedAt: beijingInputToIso(this.publishedAt) ?? "",
     };
     this.close();

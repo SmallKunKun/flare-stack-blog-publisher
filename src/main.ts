@@ -14,6 +14,7 @@ import { NewPostModal } from "./new-post-modal";
 import {
   noteCategory,
   noteCover,
+  noteCoverMediaId,
   notePostId,
   notePublishedAt,
   noteSlug,
@@ -652,6 +653,7 @@ export default class FlareStackBlogPublisher extends Plugin {
         tags: noteTags(note.frontmatter),
         slug: noteSlug(note.frontmatter) ?? "",
         cover: noteCover(note.frontmatter) ?? "",
+        coverMediaId: noteCoverMediaId(note.frontmatter),
         publishedAt: notePublishedAt(note.frontmatter) ?? "",
       };
 
@@ -681,6 +683,11 @@ export default class FlareStackBlogPublisher extends Plugin {
         frontmatter[PROPERTY_KEYS.category] = form.category.trim();
         frontmatter[PROPERTY_KEYS.tags] = form.tags;
         frontmatter[PROPERTY_KEYS.cover] = form.cover.trim();
+        if (form.coverMediaId !== undefined) {
+          frontmatter.fsb_cover_media_id = form.coverMediaId;
+        } else {
+          delete frontmatter.fsb_cover_media_id;
+        }
         if (form.publishedAt) {
           frontmatter[PROPERTY_KEYS.publishedAt] = form.publishedAt;
         } else {

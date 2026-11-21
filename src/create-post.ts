@@ -15,6 +15,7 @@ export interface NewPostForm {
   tags: string[];
   slug: string;
   cover: string;
+  coverMediaId?: number;
   publishedAt: string;
 }
 
@@ -32,6 +33,9 @@ export async function createPostNote(
   const frontmatter = {
     [PROPERTY_KEYS.title]: title,
     [PROPERTY_KEYS.cover]: form.cover.trim(),
+    ...(form.coverMediaId !== undefined
+      ? { fsb_cover_media_id: form.coverMediaId }
+      : {}),
     [PROPERTY_KEYS.category]: form.category.trim(),
     [PROPERTY_KEYS.tags]: form.tags,
     [PROPERTY_KEYS.slug]: form.slug.trim(),

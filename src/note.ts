@@ -158,6 +158,12 @@ export function noteCover(
   return stringValue(value);
 }
 
+export function noteCoverMediaId(
+  frontmatter: Record<string, unknown>,
+): number | undefined {
+  return numberValue(frontmatter.fsb_cover_media_id);
+}
+
 export function hasTagField(
   frontmatter: Record<string, unknown>,
 ): boolean {
