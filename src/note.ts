@@ -149,6 +149,15 @@ export function noteCategory(
   return stringValue(value);
 }
 
+export function noteCover(
+  frontmatter: Record<string, unknown>,
+): string | undefined {
+  const value = hasOwn(frontmatter, PROPERTY_KEYS.cover)
+    ? frontmatter[PROPERTY_KEYS.cover]
+    : (frontmatter.cover ?? frontmatter.cover_image ?? frontmatter.image);
+  return stringValue(value);
+}
+
 export function hasTagField(
   frontmatter: Record<string, unknown>,
 ): boolean {

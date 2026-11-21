@@ -12,8 +12,11 @@ import { createPostNote, type NewPostForm } from "./create-post";
 import { NewPostModal } from "./new-post-modal";
 import {
   noteCategory,
+  noteCover,
   notePostId,
   notePublishedAt,
+  noteSlug,
+  noteSummary,
   noteTags,
   noteTitle,
   parseNote,
@@ -26,7 +29,6 @@ import {
   type PublishConfirmation,
 } from "./publish-confirm-modal";
 import { PROPERTY_KEYS, migrateProperties } from "./properties";
-import { PublishedAtModal } from "./published-at-modal";
 import {
   findLocalPostFile,
   localPostIds,
@@ -34,7 +36,6 @@ import {
 } from "./pull";
 import { PullConflictModal } from "./pull-conflict-modal";
 import { PullPostModal } from "./pull-modal";
-import { TaxonomyModal, type TaxonomyValue } from "./taxonomy-modal";
 import {
   DEFAULT_SETTINGS,
   PublisherSettingTab,
@@ -150,23 +151,12 @@ export default class FlareStackBlogPublisher extends Plugin {
     });
 
     this.addCommand({
-      id: "set-published-at",
-      name: "设置发布时间",
+      id: "article-info",
+      name: "文章信息",
       checkCallback: (checking) => {
         const file = this.activeMarkdownFile();
         if (!file) return false;
-        if (!checking) void this.openPublishedAtModal(file);
-        return true;
-      },
-    });
-
-    this.addCommand({
-      id: "set-taxonomy",
-      name: "设置分类和标签",
-      checkCallback: (checking) => {
-        const file = this.activeMarkdownFile();
-        if (!file) return false;
-        if (!checking) void this.openTaxonomyModal(file);
+        if (!checking) void this.openArticleInfoModal(file);
         return true;
       },
     });
@@ -243,15 +233,9 @@ export default class FlareStackBlogPublisher extends Plugin {
     );
     menu.addItem((item) =>
       item
-        .setTitle("设置发布时间…")
-        .setIcon("calendar")
-        .onClick(() => void this.openPublishedAtModal(file)),
-    );
-    menu.addItem((item) =>
-      item
-        .setTitle("设置分类和标签…")
-        .setIcon("tag")
-        .onClick(() => void this.openTaxonomyModal(file)),
+        .setTitle("文章信息…")
+        .setIcon("info")
+        .onClick(() => void this.openArticleInfoModal(file)),
     );
   }
 
@@ -279,20 +263,11 @@ export default class FlareStackBlogPublisher extends Plugin {
     );
     menu.addItem((item) =>
       item
-        .setTitle("设置日期")
-        .setIcon("calendar")
+        .setTitle("文章信息")
+        .setIcon("info")
         .setDisabled(noFile)
         .onClick(() => {
-          if (file) void this.openPublishedAtModal(file);
-        }),
-    );
-    menu.addItem((item) =>
-      item
-        .setTitle("设置分类和标签")
-        .setIcon("tag")
-        .setDisabled(noFile)
-        .onClick(() => {
-          if (file) void this.openTaxonomyModal(file);
+          if (file) void this.openArticleInfoModal(file);
         }),
     );
     menu.addItem((item) =>
@@ -542,74 +517,65 @@ export default class FlareStackBlogPublisher extends Plugin {
     }
   }
 
-  private async openPublishedAtModal(file: TFile): Promise<void> {
+  private async openArticleInfoModal(file: TFile): Promise<void> {
     try {
       const raw = await this.app.vault.read(file);
       const note = parseNote(raw);
-      new PublishedAtModal(
-        this.app,
-        notePublishedAt(note.frontmatter),
-        (iso) => void this.savePublishedAt(file, iso),
-      ).open();
-    } catch (error) {
-      console.error("Flare Stack Blog read publishedAt failed", error);
-      new Notice(`读取发布时间失败：${describeApiError(error)}`, 8000);
-    }
-  }
+      const initial: NewPostForm = {
+        title: noteTitle(note.frontmatter, file.basename),
+        summary: noteSummary(note.frontmatter) ?? "",
+        category: noteCategory(note.frontmatter) ?? "",
+        tags: noteTags(note.frontmatter),
+        slug: noteSlug(note.frontmatter) ?? "",
+        cover: noteCover(note.frontmatter) ?? "",
+        publishedAt: notePublishedAt(note.frontmatter) ?? "",
+      };
 
-  private async savePublishedAt(
-    file: TFile,
-    iso: string | undefined,
-  ): Promise<void> {
-    try {
-      await this.app.fileManager.processFrontMatter(file, (frontmatter) => {
-        if (iso) frontmatter[PROPERTY_KEYS.publishedAt] = iso;
-        else delete frontmatter[PROPERTY_KEYS.publishedAt];
-        delete frontmatter.publishedAt;
-      });
-      new Notice(iso ? "发布时间已保存。" : "发布时间已清除。");
-    } catch (error) {
-      console.error("Flare Stack Blog save publishedAt failed", error);
-      new Notice(`保存发布时间失败：${describeApiError(error)}`, 8000);
-    }
-  }
-
-  private async openTaxonomyModal(file: TFile): Promise<void> {
-    try {
-      const raw = await this.app.vault.read(file);
-      const note = parseNote(raw);
-      new TaxonomyModal(
+      new NewPostModal(
         this.app,
         this.tryCreateApi(),
-        {
-          category: noteCategory(note.frontmatter) ?? "",
-          tags: noteTags(note.frontmatter),
-        },
-        (value) => void this.saveTaxonomy(file, value),
+        false,
+        "",
+        [],
+        (form) => void this.saveArticleInfo(file, form),
+        { mode: "edit", initial },
       ).open();
     } catch (error) {
-      console.error("Flare Stack Blog read taxonomy failed", error);
-      new Notice(`读取分类和标签失败：${describeApiError(error)}`, 8000);
+      console.error("Flare Stack Blog read article info failed", error);
+      new Notice(`读取文章信息失败：${describeApiError(error)}`, 8000);
     }
   }
 
-  private async saveTaxonomy(
+  private async saveArticleInfo(
     file: TFile,
-    value: TaxonomyValue,
+    form: NewPostForm,
   ): Promise<void> {
     try {
       await this.app.fileManager.processFrontMatter(file, (frontmatter) => {
-        frontmatter[PROPERTY_KEYS.category] = value.category;
-        frontmatter[PROPERTY_KEYS.tags] = value.tags;
+        migrateProperties(frontmatter);
+        frontmatter[PROPERTY_KEYS.title] = form.title.trim();
+        frontmatter[PROPERTY_KEYS.summary] = form.summary.trim();
+        frontmatter[PROPERTY_KEYS.slug] = form.slug.trim();
+        frontmatter[PROPERTY_KEYS.category] = form.category.trim();
+        frontmatter[PROPERTY_KEYS.tags] = form.tags;
+        frontmatter[PROPERTY_KEYS.cover] = form.cover.trim();
+        if (form.publishedAt) {
+          frontmatter[PROPERTY_KEYS.publishedAt] = form.publishedAt;
+        } else {
+          delete frontmatter[PROPERTY_KEYS.publishedAt];
+        }
         delete frontmatter.category;
         delete frontmatter.categories;
         delete frontmatter.tags;
         delete frontmatter.tag;
+        delete frontmatter.publishedAt;
+        delete frontmatter.cover_image;
+        delete frontmatter.image;
       });
-      new Notice("分类和标签已保存。");
+      new Notice("文章信息已保存。");
     } catch (error) {
-      console.error("Flare Stack Blog save taxonomy failed", error);
-      new Notice(`保存分类和标签失败：${describeApiError(error)}`, 8000);
+      console.error("Flare Stack Blog save article info failed", error);
+      new Notice(`保存文章信息失败：${describeApiError(error)}`, 8000);
     }
   }
 

@@ -13,6 +13,11 @@ import {
   beijingInputToIso,
 } from "./time";
 
+export interface NewPostModalOptions {
+  mode?: "create" | "edit";
+  initial?: NewPostForm;
+}
+
 export class NewPostModal extends Modal {
   private title = "";
   private summary = "";
@@ -23,6 +28,7 @@ export class NewPostModal extends Modal {
   private publishedAt: string;
   private titleInput: HTMLInputElement | null = null;
   private taxonomySetting: Setting | null = null;
+  private readonly mode: "create" | "edit";
 
   constructor(
     app: App,
@@ -31,20 +37,41 @@ export class NewPostModal extends Modal {
     defaultCategory: string,
     defaultTags: string[],
     private readonly onSubmit: (form: NewPostForm) => void,
+    options: NewPostModalOptions = {},
   ) {
     super(app);
-    this.category = defaultCategory.trim();
-    this.tags = [...defaultTags];
-    this.publishedAt = autoFillPublishedAt
-      ? beijingDateTimeLocalValue()
-      : "";
+    this.mode = options.mode ?? "create";
+    const initial = options.initial;
+
+    if (initial) {
+      this.title = initial.title;
+      this.summary = initial.summary;
+      this.category = initial.category;
+      this.tags = [...initial.tags];
+      this.slug = initial.slug;
+      this.cover = initial.cover;
+      const date = initial.publishedAt ? new Date(initial.publishedAt) : null;
+      this.publishedAt =
+        date && !Number.isNaN(date.getTime())
+          ? beijingDateTimeLocalValue(date)
+          : "";
+    } else {
+      this.category = defaultCategory.trim();
+      this.tags = [...defaultTags];
+      this.publishedAt = autoFillPublishedAt
+        ? beijingDateTimeLocalValue()
+        : "";
+    }
   }
 
   onOpen(): void {
     this.modalEl.addClass("fsb-new-post-modal");
-    this.titleEl.setText("新建文章");
+    this.titleEl.setText(this.mode === "edit" ? "文章信息" : "新建文章");
     this.contentEl.createEl("p", {
-      text: "属性会写进 frontmatter，建好直接写正文。",
+      text:
+        this.mode === "edit"
+          ? "改完点保存，会写回当前笔记的属性。"
+          : "属性会写进 frontmatter，建好直接写正文。",
       cls: "fsb-new-post-hint",
     });
 
@@ -109,7 +136,7 @@ export class NewPostModal extends Modal {
 
     const actions = this.contentEl.createDiv({ cls: "fsb-conflict-actions" });
     new ButtonComponent(actions)
-      .setButtonText("创建并打开")
+      .setButtonText(this.mode === "edit" ? "保存" : "创建并打开")
       .setCta()
       .onClick(() => this.submit());
     new ButtonComponent(actions)
