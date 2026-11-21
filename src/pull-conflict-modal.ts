@@ -13,16 +13,16 @@ export class PullConflictModal extends Modal {
   onOpen(): void {
     this.titleEl.setText("文章已在本地");
     this.contentEl.createEl("p", {
-      text: `《${this.postTitle}》已经拉取过。`,
+      text: `本地已经有《${this.postTitle}》。`,
     });
     this.contentEl.createEl("p", {
-      text: "用云端内容覆盖会丢失本地尚未发布的修改。",
+      text: "覆盖会丢掉本地还没发布的修改。",
       cls: "mod-warning",
     });
 
     const actions = this.contentEl.createDiv({ cls: "fsb-conflict-actions" });
     new ButtonComponent(actions)
-      .setButtonText("打开本地版本")
+      .setButtonText("打开本地")
       .setCta()
       .onClick(() => {
         this.close();

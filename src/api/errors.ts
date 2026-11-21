@@ -29,6 +29,6 @@ export function toBlogApiError(error: unknown): BlogApiError {
 
 export function describeApiError(error: unknown): string {
   const apiError = toBlogApiError(error);
-  const suffix = apiError.status > 0 ? ` (HTTP ${apiError.status})` : "";
+  const suffix = apiError.status > 0 ? `（HTTP ${apiError.status}）` : "";
   return `${apiError.message}${suffix}`;
 }

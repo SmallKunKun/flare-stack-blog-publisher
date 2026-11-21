@@ -25,9 +25,9 @@ export class NewPostModal extends Modal {
 
   onOpen(): void {
     this.modalEl.addClass("fsb-new-post-modal");
-    this.titleEl.setText("新建博客文章");
+    this.titleEl.setText("新建文章");
     this.contentEl.createEl("p", {
-      text: "属性会预先写好，创建后直接填写正文即可。",
+      text: "属性会写进 frontmatter，建好直接写正文。",
       cls: "fsb-new-post-hint",
     });
 
@@ -49,30 +49,30 @@ export class NewPostModal extends Modal {
 
     new Setting(this.contentEl).setName("摘要").addText((text) =>
       text
-        .setPlaceholder("可选，显示在列表和搜索结果里")
+        .setPlaceholder("选填，显示在列表和搜索里")
         .onChange((value) => {
           this.summary = value;
         }),
     );
 
     new Setting(this.contentEl).setName("分类").addText((text) =>
-      text.setPlaceholder("可选").onChange((value) => {
+      text.setPlaceholder("选填").onChange((value) => {
         this.category = value;
       }),
     );
 
     new Setting(this.contentEl)
       .setName("标签")
-      .setDesc("用逗号分隔")
+      .setDesc("逗号分隔")
       .addText((text) =>
-        text.setPlaceholder("例如：Obsidian, 博客").onChange((value) => {
+        text.setPlaceholder("Obsidian, 博客").onChange((value) => {
           this.tags = value;
         }),
       );
 
     new Setting(this.contentEl)
       .setName("Slug")
-      .setDesc("留空则由博客自动生成")
+      .setDesc("留空自动生成")
       .addText((text) =>
         text.setPlaceholder("custom-url-slug").onChange((value) => {
           this.slug = value;
@@ -81,7 +81,7 @@ export class NewPostModal extends Modal {
 
     new Setting(this.contentEl)
       .setName("封面")
-      .setDesc("可选，本地图片路径")
+      .setDesc("选填，本地图片路径")
       .addText((text) =>
         text.setPlaceholder("attachments/cover.png").onChange((value) => {
           this.cover = value;
@@ -107,7 +107,7 @@ export class NewPostModal extends Modal {
   private submit(): void {
     const title = this.title.trim();
     if (!title) {
-      new Notice("请填写文章标题。");
+      new Notice("标题不能为空。");
       this.titleInput?.focus();
       return;
     }

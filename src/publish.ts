@@ -52,7 +52,7 @@ export async function publishNote(
   const title = noteTitle(note.frontmatter, file.basename);
 
   if (!title) {
-    throw new Error("笔记标题为空。");
+    throw new Error("标题是空的。");
   }
 
   const body = note.body;

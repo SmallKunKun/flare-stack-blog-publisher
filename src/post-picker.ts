@@ -20,7 +20,7 @@ export class PostPickerModal extends SuggestModal<PickerItem> {
     private readonly resolve: (choice: PostPickerChoice) => void,
   ) {
     super(app);
-    this.setPlaceholder("选择要更新的文章，或新建一篇");
+    this.setPlaceholder("选一篇更新，或者新建");
     this.setInstructions([
       { command: "↵", purpose: "选择" },
       { command: "esc", purpose: "取消" },
@@ -44,9 +44,9 @@ export class PostPickerModal extends SuggestModal<PickerItem> {
 
   renderSuggestion(item: PickerItem, el: HTMLElement): void {
     if (item.kind === "new") {
-      el.createDiv({ text: "新建一篇文章", cls: "fsb-picker-title" });
+      el.createDiv({ text: "新建文章", cls: "fsb-picker-title" });
       el.createDiv({
-        text: "不更新上面的匹配，创建一篇新草稿",
+        text: "忽略上面的匹配，重新建一篇",
         cls: "fsb-picker-meta",
       });
       return;

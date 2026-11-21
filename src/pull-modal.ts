@@ -21,7 +21,7 @@ export class PullPostModal extends Modal {
 
   onOpen(): void {
     this.modalEl.addClass("fsb-pull-modal");
-    this.titleEl.setText("拉取云端文章");
+    this.titleEl.setText("拉取文章");
     this.contentEl.empty();
 
     const searchWrap = this.contentEl.createDiv({ cls: "fsb-pull-search-wrap" });
@@ -53,7 +53,7 @@ export class PullPostModal extends Modal {
 
   private async load(): Promise<void> {
     const requestId = ++this.requestId;
-    this.statusEl.setText("正在加载…");
+    this.statusEl.setText("加载中…");
     this.listEl.empty();
 
     try {
@@ -71,13 +71,13 @@ export class PullPostModal extends Modal {
 
   private render(items: AdminPostListItem[], total: number): void {
     if (items.length === 0) {
-      this.statusEl.setText("没有找到文章。");
+      this.statusEl.setText("没找到文章。");
       return;
     }
 
     this.statusEl.setText(
       total > items.length
-        ? `共 ${total} 篇，显示最近更新的 ${items.length} 篇；继续输入可缩小范围。`
+        ? `共 ${total} 篇，先显示最近 ${items.length} 篇。输入关键词继续筛。`
         : `共 ${total} 篇`,
     );
 
@@ -97,7 +97,7 @@ export class PullPostModal extends Modal {
     }
 
     const state = post.hasUnpublishedChanges
-      ? "已发布 · 有未发布修改"
+      ? "已发布（有改动）"
       : post.status === "published"
         ? "已发布"
         : "草稿";

@@ -204,7 +204,7 @@ export class BlogApi {
     if (response.status < 200 || response.status >= 300) {
       const apiError = payload as ApiErrorPayload | undefined;
       throw new BlogApiError(
-        apiError?.message ?? `请求失败（HTTP ${response.status}）`,
+        apiError?.message ?? `请求失败：HTTP ${response.status}`,
         response.status,
         apiError?.code,
         payload,
@@ -230,7 +230,7 @@ export class BlogApi {
 export function normalizeSiteUrl(input: string): string {
   const trimmed = input.trim();
   if (!trimmed) {
-    throw new BlogApiError("请先在插件设置中填写博客地址。");
+    throw new BlogApiError("还没填博客地址。");
   }
   const withProtocol = /^https?:\/\//i.test(trimmed)
     ? trimmed
@@ -239,10 +239,10 @@ export function normalizeSiteUrl(input: string): string {
   try {
     url = new URL(withProtocol);
   } catch {
-    throw new BlogApiError(`博客地址无效：${input}`);
+    throw new BlogApiError(`博客地址不对：${input}`);
   }
   if (url.protocol !== "https:" && url.protocol !== "http:") {
-    throw new BlogApiError("博客地址必须以 http:// 或 https:// 开头。");
+    throw new BlogApiError("博客地址要以 http:// 或 https:// 开头。");
   }
   return url.origin;
 }
@@ -258,7 +258,7 @@ function parsePayload(text: string): unknown {
 
 function networkErrorMessage(error: unknown): string {
   const detail = error instanceof Error ? error.message : String(error);
-  return `无法连接博客，请检查地址、网络和 API Key。${detail ? `（${detail}）` : ""}`;
+  return `连不上博客，检查地址、网络和 API Key。${detail ? `（${detail}）` : ""}`;
 }
 
 function escapeFileName(fileName: string): string {

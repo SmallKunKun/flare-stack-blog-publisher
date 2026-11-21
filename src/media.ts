@@ -112,7 +112,7 @@ export async function uploadCover(
   const raw = frontmatter.cover ?? frontmatter.cover_image ?? frontmatter.image;
   const value = Array.isArray(raw) ? raw[0] : raw;
   if (typeof value !== "string") {
-    return { mediaId: undefined, warnings: ["封面字段不是图片路径，已保留原封面。"] };
+    return { mediaId: undefined, warnings: ["封面不是图片路径，保留原封面。"] };
   }
 
   const trimmed = value.trim();
@@ -120,14 +120,14 @@ export async function uploadCover(
   if (isRemoteOrMediaPath(trimmed)) {
     return {
       mediaId: undefined,
-      warnings: ["封面需要是本地图片；网络地址和媒体库路径暂不支持，已保留原封面。"],
+      warnings: ["封面只支持本地图片，保留原封面。"],
     };
   }
 
   const target = unwrapWikiLink(trimmed);
   const file = resolveFile(app, stripSubpath(target), sourcePath);
   if (!file) {
-    return { mediaId: undefined, warnings: [`找不到封面图片：${target}`] };
+    return { mediaId: undefined, warnings: [`找不到封面：${target}`] };
   }
 
   try {
@@ -137,7 +137,7 @@ export async function uploadCover(
     return {
       mediaId: undefined,
       warnings: [
-        `封面上传失败，已保留原封面：${error instanceof Error ? error.message : String(error)}`,
+        `封面上传失败，保留原封面：${error instanceof Error ? error.message : String(error)}`,
       ],
     };
   }
@@ -177,7 +177,7 @@ async function uploadFile(
   const extension = file.extension.toLocaleLowerCase();
   const mimeType = MIME_TYPES[extension];
   if (!mimeType) {
-    throw new Error(`不支持的图片格式：${file.name}`);
+    throw new Error(`不支持这种图片格式：${file.name}`);
   }
   if (file.stat.size > MAX_IMAGE_BYTES) {
     throw new Error(`图片超过 10 MB：${file.name}`);
