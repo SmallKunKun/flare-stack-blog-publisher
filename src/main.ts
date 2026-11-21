@@ -302,26 +302,26 @@ export default class FlareStackBlogPublisher extends Plugin {
     menu.addSeparator();
     menu.addItem((item) =>
       item
-        .setTitle("发布到博客")
+        .setTitle("发布文章")
         .setIcon("upload")
         .onClick(() => this.publishFile(file, "publish")),
     );
     menu.addItem((item) =>
       item
-        .setTitle("保存为草稿")
+        .setTitle("保存草稿")
         .setIcon("save")
         .onClick(() => this.publishFile(file, "draft")),
     );
     menu.addItem((item) =>
       item
-        .setTitle("打开博客文章")
+        .setTitle("打开文章")
         .setIcon("external-link")
         .setDisabled(!this.hasPublishedLink(file))
         .onClick(() => void this.openPost(file)),
     );
     menu.addItem((item) =>
       item
-        .setTitle("文章信息…")
+        .setTitle("文章信息")
         .setIcon("info")
         .onClick(() => void this.openArticleInfoModal(file)),
     );
