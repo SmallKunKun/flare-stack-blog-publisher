@@ -85,6 +85,9 @@ async function buildNoteContent(
   // The single-post response only carries categoryId. The list item carries
   // the category name, and the draft's tags.
   const tags = post.tags && post.tags.length > 0 ? post.tags : item.tags;
+  const coverUrl = post.cover?.url
+    ? absoluteUrl(post.cover.url, api.siteOrigin)
+    : "";
   const frontmatter: Record<string, unknown> = {
     [PROPERTY_KEYS.title]: post.title,
     ...(post.summary ? { [PROPERTY_KEYS.summary]: post.summary } : {}),
@@ -94,6 +97,7 @@ async function buildNoteContent(
       : {}),
     [PROPERTY_KEYS.category]: item.category?.name ?? "",
     [PROPERTY_KEYS.tags]: tags.map((tag) => tag.name),
+    [PROPERTY_KEYS.cover]: coverUrl,
     fsb_post_id: post.id,
     ...(publicSlug
       ? {
@@ -197,4 +201,8 @@ function absolutizeLinks(body: string, origin: string): string {
       /((?:src|poster)=["'])(\/(?:images|post|moments)\/)/g,
       `$1${origin}$2`,
     );
+}
+
+function absoluteUrl(value: string, origin: string): string {
+  return value.startsWith("/") ? `${origin}${value}` : value;
 }

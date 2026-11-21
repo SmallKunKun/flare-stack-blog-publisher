@@ -7,6 +7,7 @@ import {
 } from "obsidian";
 import type { BlogApi } from "./api/client";
 import type { NewPostForm } from "./create-post";
+import { ImagePickerModal } from "./image-picker";
 import { TaxonomyModal } from "./taxonomy-modal";
 import {
   beijingDateTimeLocalValue,
@@ -28,6 +29,8 @@ export class NewPostModal extends Modal {
   private publishedAt: string;
   private titleInput: HTMLInputElement | null = null;
   private taxonomySetting: Setting | null = null;
+  private coverSetting: Setting | null = null;
+  private clearCoverButton: ButtonComponent | null = null;
   private readonly mode: "create" | "edit";
 
   constructor(
@@ -122,17 +125,22 @@ export class NewPostModal extends Modal {
           }),
       );
 
-    new Setting(this.contentEl)
+    this.coverSetting = new Setting(this.contentEl)
       .setName("封面")
-      .setDesc("选填，本地图片路径")
-      .addText((text) =>
-        text
-          .setValue(this.cover)
-          .setPlaceholder("attachments/cover.png")
-          .onChange((value) => {
-            this.cover = value;
-          }),
-      );
+      .setDesc(this.coverSummary())
+      .addButton((button) =>
+        button.setButtonText("选择图片…").onClick(() => this.pickCover()),
+      )
+      .addButton((button) => {
+        this.clearCoverButton = button;
+        button
+          .setButtonText("清除")
+          .setDisabled(!this.cover)
+          .onClick(() => {
+            this.cover = "";
+            this.updateCover();
+          });
+      });
 
     new Setting(this.contentEl)
       .setName("发布时间")
@@ -177,6 +185,22 @@ export class NewPostModal extends Modal {
         this.taxonomySetting?.setDesc(this.taxonomySummary());
       },
     ).open();
+  }
+
+  private coverSummary(): string {
+    return this.cover || "未选择";
+  }
+
+  private updateCover(): void {
+    this.coverSetting?.setDesc(this.coverSummary());
+    this.clearCoverButton?.setDisabled(!this.cover);
+  }
+
+  private pickCover(): void {
+    new ImagePickerModal(this.app, (file) => {
+      this.cover = file.path;
+      this.updateCover();
+    }).open();
   }
 
   private submit(): void {

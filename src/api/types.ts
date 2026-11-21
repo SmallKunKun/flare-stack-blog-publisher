@@ -5,6 +5,15 @@ export interface CategoryRef {
   name: string;
 }
 
+export interface PostCover {
+  key: string;
+  url: string;
+  width: number | null;
+  height: number | null;
+  id?: number;
+  fileName?: string;
+}
+
 export interface TagRef {
   id: number;
   name: string;
@@ -56,6 +65,7 @@ export interface AdminPost {
   updatedAt: string;
   categoryId: number | null;
   tags?: TagRef[];
+  cover: PostCover | null;
   published: PublishedVersion | null;
 }
 

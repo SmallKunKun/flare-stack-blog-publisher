@@ -116,12 +116,9 @@ export async function uploadCover(
   }
 
   const trimmed = value.trim();
-  if (!trimmed) return { mediaId: null, warnings: [] };
+  if (!trimmed) return { mediaId: undefined, warnings: [] };
   if (isRemoteOrMediaPath(trimmed)) {
-    return {
-      mediaId: undefined,
-      warnings: ["封面只支持本地图片，保留原封面。"],
-    };
+    return { mediaId: undefined, warnings: [] };
   }
 
   const target = unwrapWikiLink(trimmed);
