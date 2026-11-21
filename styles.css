@@ -260,3 +260,8 @@ body:not(.fsb-show-internal) .metadata-property[data-property-key^="fsb_"] {
 .fsb-new-post-modal textarea {
   font-size: var(--font-ui-medium);
 }
+
+.fsb-taxonomy-category {
+  margin: 8px 0 18px;
+  padding-bottom: 6px;
+}

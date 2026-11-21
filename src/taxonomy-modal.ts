@@ -1,4 +1,5 @@
 import {
+  AbstractInputSuggest,
   ButtonComponent,
   Modal,
   Notice,
@@ -21,11 +22,8 @@ export class TaxonomyModal extends Modal {
   private tagsText: string;
   private categories: CategoryOption[] = [];
   private existingTags: TagRef[] = [];
-  private readonly categoryListId = `fsb-categories-${Math.random()
-    .toString(36)
-    .slice(2)}`;
   private categoryInput: HTMLInputElement | null = null;
-  private categoryDatalist: HTMLDataListElement | null = null;
+  private categorySuggest: CategorySuggest | null = null;
   private categoryChipsEl: HTMLElement | null = null;
   private tagInput: HTMLInputElement | null = null;
   private tagChipsEl!: HTMLElement;
@@ -47,10 +45,6 @@ export class TaxonomyModal extends Modal {
   onOpen(): void {
     this.modalEl.addClass("fsb-taxonomy-modal");
     this.titleEl.setText("分类和标签");
-    this.contentEl.createEl("p", {
-      text: "分类只能填一个。云端没有的分类或标签，发布时会自动创建。",
-      cls: "fsb-new-post-hint",
-    });
 
     new Setting(this.contentEl)
       .setName("分类")
@@ -64,15 +58,23 @@ export class TaxonomyModal extends Modal {
             this.category = value;
             this.renderCategoryChips();
           });
-        text.inputEl.setAttribute("list", this.categoryListId);
+        this.categorySuggest = new CategorySuggest(
+          this.app,
+          text.inputEl,
+          () => this.categories,
+          (name) => {
+            this.category = name;
+            if (this.categoryInput) this.categoryInput.value = name;
+            this.renderCategoryChips();
+          },
+        );
+        text.inputEl.addEventListener("click", () => {
+          this.categorySuggest?.open();
+        });
       });
 
-    this.categoryDatalist = this.contentEl.createEl("datalist", {
-      attr: { id: this.categoryListId },
-    });
-
     const categoryChipsBox = this.contentEl.createDiv({
-      cls: "fsb-taxonomy-tags",
+      cls: "fsb-taxonomy-tags fsb-taxonomy-category",
     });
     categoryChipsBox.createEl("div", {
       text: "已有分类",
@@ -120,6 +122,8 @@ export class TaxonomyModal extends Modal {
 
   onClose(): void {
     this.closed = true;
+    this.categorySuggest?.close();
+    this.categorySuggest = null;
     this.contentEl.empty();
   }
 
@@ -141,7 +145,6 @@ export class TaxonomyModal extends Modal {
 
       this.categories = categories;
       this.existingTags = tags;
-      this.renderCategoryOptions();
       this.statusEl.setText(
         `已有 ${categories.length} 个分类，${tags.length} 个标签。`,
       );
@@ -154,13 +157,6 @@ export class TaxonomyModal extends Modal {
       );
       this.renderCategoryChips();
       this.renderTagChips();
-    }
-  }
-
-  private renderCategoryOptions(): void {
-    this.categoryDatalist?.empty();
-    for (const category of this.categories) {
-      this.categoryDatalist?.createEl("option", { value: category.name });
     }
   }
 
@@ -228,7 +224,6 @@ export class TaxonomyModal extends Modal {
         this.category = "";
         if (this.categoryInput) this.categoryInput.value = "";
       }
-      this.renderCategoryOptions();
       this.renderCategoryChips();
       new Notice("分类已删除。");
     } catch (error) {
@@ -339,4 +334,30 @@ function parseTags(value: string): string[] {
     tags.push(name);
   }
   return tags;
+}
+
+class CategorySuggest extends AbstractInputSuggest<string> {
+  constructor(
+    app: App,
+    inputEl: HTMLInputElement,
+    private readonly getCategories: () => CategoryOption[],
+    private readonly onChoose: (name: string) => void,
+  ) {
+    super(app, inputEl);
+    this.onSelect((value) => {
+      this.onChoose(value);
+      this.close();
+    });
+  }
+
+  protected getSuggestions(query: string): string[] {
+    const needle = query.trim().toLowerCase();
+    return this.getCategories()
+      .map((category) => category.name)
+      .filter((name) => !needle || name.toLowerCase().includes(needle));
+  }
+
+  renderSuggestion(value: string, el: HTMLElement): void {
+    el.setText(value);
+  }
 }
