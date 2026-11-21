@@ -324,20 +324,11 @@ export default class FlareStackBlogPublisher extends Plugin {
     );
     menu.addItem((item) =>
       item
-        .setTitle("保存草稿")
-        .setIcon("save")
-        .setDisabled(noFile)
-        .onClick(() => {
-          if (file) void this.runPublish(file, "draft");
-        }),
-    );
-    menu.addItem((item) =>
-      item
         .setTitle("发布文章")
         .setIcon("upload")
         .setDisabled(noFile)
         .onClick(() => {
-          if (file) void this.runPublish(file, "publish");
+          if (file) this.publishChoice(file);
         }),
     );
     menu.addItem((item) =>

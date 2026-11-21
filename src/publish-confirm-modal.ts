@@ -53,9 +53,9 @@ class PublishActionModal extends Modal {
     this.modalEl.addClass("fsb-confirm-modal");
 
     if (this.allowChoice) {
-      this.titleEl.setText("保存还是发布？");
+      this.titleEl.setText("选择发布类型");
     } else {
-      this.titleEl.setText(publishing ? "确认发布" : "确认保存草稿");
+      this.titleEl.setText(publishing ? "确认发布文章" : "确认保存草稿");
     }
 
     this.renderCover();
