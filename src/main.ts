@@ -67,20 +67,22 @@ export default class FlareStackBlogPublisher extends Plugin {
 
     this.addSettingTab(new PublisherSettingTab(this.app, this));
 
-    this.addRibbonIcon("plus", "新建文章", () => {
-      this.openNewPostModal();
-    });
-
-    this.addRibbonIcon("download", "拉取文章", () => {
-      void this.openPullModal();
+    // Obsidian adds new ribbon items above earlier ones, so register them in
+    // reverse to show: 新建文章, 拉取文章, 文章信息, 发布文章.
+    this.addRibbonIcon("upload", "发布文章", () => {
+      this.publishActiveChoice();
     });
 
     this.addRibbonIcon("info", "文章信息", () => {
       this.openActiveArticleInfo();
     });
 
-    this.addRibbonIcon("upload", "发布文章", () => {
-      this.publishActiveChoice();
+    this.addRibbonIcon("download", "拉取文章", () => {
+      void this.openPullModal();
+    });
+
+    this.addRibbonIcon("plus", "新建文章", () => {
+      this.openNewPostModal();
     });
 
     this.registerEvent(
