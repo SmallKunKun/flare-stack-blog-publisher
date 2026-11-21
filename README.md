@@ -2,7 +2,7 @@
 
 # Flare Stack Blog Publisher
 
-**Write Markdown in Obsidian and publish directly to Flare Stack Blog**
+**An Obsidian plugin for publishing blog posts directly to Flare Stack Blog**
 
 Publish & drafts · Cloud post sync · Media library · Chinese note properties
 

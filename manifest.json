@@ -3,7 +3,7 @@
   "name": "Flare Stack Blog Publisher",
   "version": "0.2.0",
   "minAppVersion": "1.5.7",
-  "description": "Publish notes from Obsidian to Flare Stack Blog",
+  "description": "An Obsidian plugin for publishing blog posts directly to Flare Stack Blog",
   "author": "Flare Stack Blog Publisher contributors",
   "isDesktopOnly": false
 }
