@@ -75,6 +75,10 @@ export default class FlareStackBlogPublisher extends Plugin {
       void this.openPullModal();
     });
 
+    this.addRibbonIcon("info", "文章信息", () => {
+      this.openActiveArticleInfo();
+    });
+
     this.addRibbonIcon("upload", "发布文章", () => {
       this.publishActiveChoice();
     });
@@ -187,6 +191,15 @@ export default class FlareStackBlogPublisher extends Plugin {
       return;
     }
     void this.runPublishChoice(file);
+  }
+
+  private openActiveArticleInfo(): void {
+    const file = this.activeMarkdownFile();
+    if (!file) {
+      new Notice("先打开一篇 Markdown 笔记。");
+      return;
+    }
+    void this.openArticleInfoModal(file);
   }
 
   private publishChoice(file: TFile): void {
