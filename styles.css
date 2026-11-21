@@ -302,15 +302,22 @@ body:not(.fsb-show-internal) .metadata-property[data-property-key^="fsb_"] {
 }
 
 .fsb-media-grid {
-  column-width: 180px;
-  column-gap: 10px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.fsb-media-column {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
 }
 
 .fsb-media-card {
-  display: inline-block;
+  display: block;
   width: 100%;
-  margin-bottom: 10px;
-  break-inside: avoid;
   overflow: hidden;
   border-radius: 8px;
   background: var(--background-secondary);

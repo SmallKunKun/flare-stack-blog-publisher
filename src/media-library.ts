@@ -24,6 +24,8 @@ export class MediaLibraryModal extends Modal {
   private count = 0;
   private closed = false;
   private gridEl!: HTMLElement;
+  private columns: HTMLElement[] = [];
+  private columnHeights: number[] = [];
   private statusEl!: HTMLElement;
   private moreEl!: HTMLElement;
   private searchInput: TextComponent | null = null;
@@ -79,6 +81,8 @@ export class MediaLibraryModal extends Modal {
       this.cursor = null;
       this.count = 0;
       this.gridEl.empty();
+      this.columns = [];
+      this.columnHeights = [];
     }
 
     this.statusEl.setText("加载中…");
@@ -106,12 +110,56 @@ export class MediaLibraryModal extends Modal {
   }
 
   private render(items: Media[]): void {
-    for (const media of items) this.renderItem(media);
+    this.ensureColumns();
+    for (const media of items) {
+      const index = this.shortestColumn();
+      this.renderCard(this.columns[index], media);
+      this.columnHeights[index] += this.estimateCardHeight(media) + 10;
+    }
   }
 
-  private renderItem(media: Media): void {
+  private layoutWidth(): number {
+    return (
+      this.gridEl.clientWidth ||
+      Math.min(860, window.innerWidth * 0.9)
+    );
+  }
+
+  private ensureColumns(): void {
+    if (this.columns.length > 0) return;
+
+    const width = this.layoutWidth();
+    const count = Math.max(1, Math.floor((width + 10) / 190));
+    for (let index = 0; index < count; index += 1) {
+      this.columns.push(
+        this.gridEl.createDiv({ cls: "fsb-media-column" }),
+      );
+      this.columnHeights.push(0);
+    }
+  }
+
+  private shortestColumn(): number {
+    let shortest = 0;
+    for (let index = 1; index < this.columnHeights.length; index += 1) {
+      if (this.columnHeights[index] < this.columnHeights[shortest]) {
+        shortest = index;
+      }
+    }
+    return shortest;
+  }
+
+  private estimateCardHeight(media: Media): number {
+    const count = this.columns.length || 1;
+    const width = this.layoutWidth();
+    const columnWidth = Math.max(120, (width - 10 * (count - 1)) / count);
+    const ratio =
+      media.width && media.height ? media.height / media.width : 0.75;
+    return columnWidth * ratio + 76;
+  }
+
+  private renderCard(column: HTMLElement, media: Media): void {
     const url = absoluteMediaUrl(this.api.siteOrigin, media.url);
-    const card = this.gridEl.createDiv({ cls: "fsb-media-card" });
+    const card = column.createDiv({ cls: "fsb-media-card" });
     const thumb = card.createDiv({ cls: "fsb-media-thumb" });
     const image = thumb.createEl("img", {
       attr: {
