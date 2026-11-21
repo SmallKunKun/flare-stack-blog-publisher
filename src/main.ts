@@ -8,6 +8,7 @@ import {
 import { BlogApi, normalizeSiteUrl } from "./api/client";
 import { describeApiError } from "./api/errors";
 import type { AdminPostListItem } from "./api/types";
+import { confirmAction } from "./confirm-modal";
 import { createPostNote, type NewPostForm } from "./create-post";
 import { MediaLibraryModal } from "./media-library";
 import { NewPostModal } from "./new-post-modal";
@@ -21,6 +22,7 @@ import {
   noteSummary,
   noteTags,
   noteTitle,
+  numberValue,
   parseNote,
   stringValue,
 } from "./note";
@@ -161,6 +163,17 @@ export default class FlareStackBlogPublisher extends Plugin {
     });
 
     this.addCommand({
+      id: "unpublish-current-post",
+      name: "取消发布",
+      checkCallback: (checking) => {
+        const file = this.activeMarkdownFile();
+        if (!file || !this.canUnpublish(file)) return false;
+        if (!checking) void this.unpublishPost(file);
+        return true;
+      },
+    });
+
+    this.addCommand({
       id: "pull-post",
       name: "拉取云端文章",
       callback: () => void this.openPullModal(),
@@ -210,6 +223,14 @@ export default class FlareStackBlogPublisher extends Plugin {
   private hasPublishedLink(file: TFile): boolean {
     const frontmatter = this.app.metadataCache.getFileCache(file)?.frontmatter;
     return Boolean(stringValue(frontmatter?.fsb_url));
+  }
+
+  private canUnpublish(file: TFile): boolean {
+    const frontmatter = this.app.metadataCache.getFileCache(file)?.frontmatter;
+    return (
+      Boolean(stringValue(frontmatter?.fsb_url)) &&
+      numberValue(frontmatter?.fsb_post_id) !== undefined
+    );
   }
 
   private publishActiveChoice(): void {
@@ -314,6 +335,13 @@ export default class FlareStackBlogPublisher extends Plugin {
     );
     menu.addItem((item) =>
       item
+        .setTitle("取消发布")
+        .setIcon("eye-off")
+        .setDisabled(!this.canUnpublish(file))
+        .onClick(() => void this.unpublishPost(file)),
+    );
+    menu.addItem((item) =>
+      item
         .setTitle("打开文章")
         .setIcon("external-link")
         .setDisabled(!this.hasPublishedLink(file))
@@ -336,6 +364,7 @@ export default class FlareStackBlogPublisher extends Plugin {
     const file = this.activeMarkdownFile();
     const noFile = file === null;
     const canOpen = file !== null && this.hasPublishedLink(file);
+    const canUnpublish = file !== null && this.canUnpublish(file);
     const menu = new Menu();
 
     menu.addItem((item) =>
@@ -372,6 +401,15 @@ export default class FlareStackBlogPublisher extends Plugin {
         .setDisabled(noFile)
         .onClick(() => {
           if (file) this.publishChoice(file);
+        }),
+    );
+    menu.addItem((item) =>
+      item
+        .setTitle("取消发布")
+        .setIcon("eye-off")
+        .setDisabled(!canUnpublish)
+        .onClick(() => {
+          if (file) void this.unpublishPost(file);
         }),
     );
     menu.addItem((item) =>
@@ -586,6 +624,52 @@ export default class FlareStackBlogPublisher extends Plugin {
     } catch (error) {
       console.error("Flare Stack Blog open post failed", error);
       new Notice(`打开失败：${describeApiError(error)}`, 8000);
+    }
+  }
+
+  private async unpublishPost(file: TFile): Promise<void> {
+    if (!this.isConfigured()) {
+      new Notice("还没填博客地址或 API Key");
+      this.openPluginSettings();
+      return;
+    }
+
+    let postId: number | undefined;
+    let title = file.basename;
+    try {
+      const raw = await this.app.vault.read(file);
+      const note = parseNote(raw);
+      postId = notePostId(note.frontmatter);
+      title = noteTitle(note.frontmatter, file.basename);
+    } catch (error) {
+      console.error("Flare Stack Blog read note failed", error);
+      new Notice(`读取笔记失败：${describeApiError(error)}`, 8000);
+      return;
+    }
+
+    if (postId === undefined) {
+      new Notice("这篇还没关联云端文章");
+      return;
+    }
+
+    const confirmed = await confirmAction(this.app, {
+      title: "取消发布",
+      message: `取消发布《${title}》？公开页面会下线，文章会变成草稿，草稿内容会保留`,
+      confirmText: "取消发布",
+    });
+    if (!confirmed) return;
+
+    try {
+      const api = this.createApi();
+      new Notice("正在取消发布…");
+      await api.unpublishPost(postId);
+      await this.app.fileManager.processFrontMatter(file, (frontmatter) => {
+        delete frontmatter.fsb_url;
+      });
+      new Notice(`已取消发布：${title}`);
+    } catch (error) {
+      console.error("Flare Stack Blog unpublish failed", error);
+      new Notice(`取消发布失败：${describeApiError(error)}`, 10000);
     }
   }
 
