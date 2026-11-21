@@ -20,9 +20,67 @@
   width: min(560px, 90vw);
 }
 
+.modal.fsb-taxonomy-modal {
+  width: min(620px, 92vw);
+}
+
 .fsb-new-post-hint {
   color: var(--text-muted);
   margin-top: 0;
+}
+
+.fsb-taxonomy-tags {
+  margin-top: 4px;
+}
+
+.fsb-taxonomy-label {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+  margin-top: 6px;
+}
+
+.fsb-taxonomy-search {
+  width: 100%;
+}
+
+.fsb-taxonomy-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-height: 180px;
+  overflow-y: auto;
+  margin-top: 8px;
+}
+
+.fsb-taxonomy-chip {
+  border: 1px solid var(--background-modifier-border);
+  background: transparent;
+  color: var(--text-normal);
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-size: var(--font-ui-small);
+  cursor: pointer;
+}
+
+.fsb-taxonomy-chip:hover {
+  background: var(--background-modifier-hover);
+}
+
+.fsb-taxonomy-chip.is-selected {
+  background: var(--interactive-accent);
+  border-color: var(--interactive-accent);
+  color: var(--text-on-accent);
+}
+
+.fsb-taxonomy-status {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+  margin: 8px 0;
+}
+
+.fsb-taxonomy-empty {
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
 }
 
 .fsb-pull-search {

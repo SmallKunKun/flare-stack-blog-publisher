@@ -103,7 +103,7 @@ export class PublisherSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("默认分类")
-      .setDesc("frontmatter 里没有 category 时用这个，留空就不设置。")
+      .setDesc("新建文章时预填，笔记里没有 category 时也会用。留空就不设置。")
       .addText((text) =>
         text
           .setPlaceholder("随笔")
@@ -116,7 +116,7 @@ export class PublisherSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("默认标签")
-      .setDesc("frontmatter 里没有 tags 时用这个，逗号分隔。")
+      .setDesc("新建文章时预填，笔记里没有 tags 时也会用。逗号分隔。")
       .addText((text) =>
         text
           .setPlaceholder("Obsidian, 博客")

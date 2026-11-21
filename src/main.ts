@@ -10,7 +10,7 @@ import { describeApiError } from "./api/errors";
 import type { AdminPostListItem } from "./api/types";
 import { createPostNote, type NewPostForm } from "./create-post";
 import { NewPostModal } from "./new-post-modal";
-import { notePostId, parseNote, stringValue } from "./note";
+import { noteCategory, notePostId, noteTags, parseNote, stringList, stringValue } from "./note";
 import { postUrlOf, publishNote, type PublishMode } from "./publish";
 import { PublishedAtModal } from "./published-at-modal";
 import {
@@ -20,6 +20,7 @@ import {
 } from "./pull";
 import { PullConflictModal } from "./pull-conflict-modal";
 import { PullPostModal } from "./pull-modal";
+import { TaxonomyModal, type TaxonomyValue } from "./taxonomy-modal";
 import { normalizePublishedAt } from "./time";
 import {
   DEFAULT_SETTINGS,
@@ -143,6 +144,17 @@ export default class FlareStackBlogPublisher extends Plugin {
         return true;
       },
     });
+
+    this.addCommand({
+      id: "set-taxonomy",
+      name: "设置分类和标签",
+      checkCallback: (checking) => {
+        const file = this.activeMarkdownFile();
+        if (!file) return false;
+        if (!checking) void this.openTaxonomyModal(file);
+        return true;
+      },
+    });
   }
 
   private activeMarkdownFile(): TFile | null {
@@ -209,6 +221,12 @@ export default class FlareStackBlogPublisher extends Plugin {
         .setIcon("calendar")
         .onClick(() => void this.openPublishedAtModal(file)),
     );
+    menu.addItem((item) =>
+      item
+        .setTitle("设置分类和标签…")
+        .setIcon("tag")
+        .onClick(() => void this.openTaxonomyModal(file)),
+    );
   }
 
   private onStatusBarClick(event: MouseEvent): void {
@@ -260,6 +278,19 @@ export default class FlareStackBlogPublisher extends Plugin {
             return;
           }
           void this.openPublishedAtModal(file);
+        }),
+    );
+    menu.addItem((item) =>
+      item
+        .setTitle("设置分类和标签…")
+        .setIcon("tag")
+        .onClick(() => {
+          const file = this.activeMarkdownFile();
+          if (!file) {
+            new Notice("先打开一篇 Markdown 笔记。");
+            return;
+          }
+          void this.openTaxonomyModal(file);
         }),
     );
     menu.addItem((item) =>
@@ -372,6 +403,15 @@ export default class FlareStackBlogPublisher extends Plugin {
     });
   }
 
+  private tryCreateApi(): BlogApi | null {
+    if (!this.isConfigured()) return null;
+    try {
+      return this.createApi();
+    } catch {
+      return null;
+    }
+  }
+
   private async openPost(file: TFile): Promise<void> {
     if (!this.isConfigured()) {
       new Notice("还没填博客地址或 API Key。");
@@ -433,7 +473,10 @@ export default class FlareStackBlogPublisher extends Plugin {
   private openNewPostModal(): void {
     new NewPostModal(
       this.app,
+      this.tryCreateApi(),
       this.settings.autoFillPublishedAt,
+      this.settings.defaultCategory,
+      stringList(this.settings.defaultTags),
       (form) => {
         void this.createNewPost(form);
       },
@@ -483,6 +526,43 @@ export default class FlareStackBlogPublisher extends Plugin {
     } catch (error) {
       console.error("Flare Stack Blog save publishedAt failed", error);
       new Notice(`保存发布时间失败：${describeApiError(error)}`, 8000);
+    }
+  }
+
+  private async openTaxonomyModal(file: TFile): Promise<void> {
+    try {
+      const raw = await this.app.vault.read(file);
+      const note = parseNote(raw);
+      new TaxonomyModal(
+        this.app,
+        this.tryCreateApi(),
+        {
+          category: noteCategory(note.frontmatter) ?? "",
+          tags: noteTags(note.frontmatter),
+        },
+        (value) => void this.saveTaxonomy(file, value),
+      ).open();
+    } catch (error) {
+      console.error("Flare Stack Blog read taxonomy failed", error);
+      new Notice(`读取分类和标签失败：${describeApiError(error)}`, 8000);
+    }
+  }
+
+  private async saveTaxonomy(
+    file: TFile,
+    value: TaxonomyValue,
+  ): Promise<void> {
+    try {
+      await this.app.fileManager.processFrontMatter(file, (frontmatter) => {
+        frontmatter.category = value.category;
+        frontmatter.tags = value.tags;
+        delete frontmatter.categories;
+        delete frontmatter.tag;
+      });
+      new Notice("分类和标签已保存。");
+    } catch (error) {
+      console.error("Flare Stack Blog save taxonomy failed", error);
+      new Notice(`保存分类和标签失败：${describeApiError(error)}`, 8000);
     }
   }
 

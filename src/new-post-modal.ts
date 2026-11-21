@@ -5,7 +5,9 @@ import {
   Setting,
   type App,
 } from "obsidian";
+import type { BlogApi } from "./api/client";
 import type { NewPostForm } from "./create-post";
+import { TaxonomyModal } from "./taxonomy-modal";
 import {
   beijingDateTimeLocalValue,
   beijingInputToIso,
@@ -15,18 +17,24 @@ export class NewPostModal extends Modal {
   private title = "";
   private summary = "";
   private category = "";
-  private tags = "";
+  private tags: string[] = [];
   private slug = "";
   private cover = "";
   private publishedAt: string;
   private titleInput: HTMLInputElement | null = null;
+  private taxonomySetting: Setting | null = null;
 
   constructor(
     app: App,
+    private readonly api: BlogApi | null,
     autoFillPublishedAt: boolean,
+    defaultCategory: string,
+    defaultTags: string[],
     private readonly onSubmit: (form: NewPostForm) => void,
   ) {
     super(app);
+    this.category = defaultCategory.trim();
+    this.tags = [...defaultTags];
     this.publishedAt = autoFillPublishedAt
       ? beijingDateTimeLocalValue()
       : "";
@@ -64,19 +72,11 @@ export class NewPostModal extends Modal {
         }),
     );
 
-    new Setting(this.contentEl).setName("分类").addText((text) =>
-      text.setPlaceholder("选填").onChange((value) => {
-        this.category = value;
-      }),
-    );
-
-    new Setting(this.contentEl)
-      .setName("标签")
-      .setDesc("逗号分隔")
-      .addText((text) =>
-        text.setPlaceholder("Obsidian, 博客").onChange((value) => {
-          this.tags = value;
-        }),
+    this.taxonomySetting = new Setting(this.contentEl)
+      .setName("分类和标签")
+      .setDesc(this.taxonomySummary())
+      .addButton((button) =>
+        button.setButtonText("选择…").onClick(() => this.pickTaxonomy()),
       );
 
     new Setting(this.contentEl)
@@ -123,6 +123,25 @@ export class NewPostModal extends Modal {
     this.contentEl.empty();
   }
 
+  private taxonomySummary(): string {
+    const category = this.category.trim() || "不设置";
+    const tags = this.tags.length > 0 ? this.tags.join("、") : "无";
+    return `分类：${category} · 标签：${tags}`;
+  }
+
+  private pickTaxonomy(): void {
+    new TaxonomyModal(
+      this.app,
+      this.api,
+      { category: this.category, tags: this.tags },
+      (value) => {
+        this.category = value.category;
+        this.tags = value.tags;
+        this.taxonomySetting?.setDesc(this.taxonomySummary());
+      },
+    ).open();
+  }
+
   private submit(): void {
     const title = this.title.trim();
     if (!title) {
@@ -131,16 +150,11 @@ export class NewPostModal extends Modal {
       return;
     }
 
-    const tags = this.tags
-      .split(/[,，]/)
-      .map((tag) => tag.trim().replace(/^#/, ""))
-      .filter((tag) => tag.length > 0);
-
     const form: NewPostForm = {
       title,
       summary: this.summary,
       category: this.category,
-      tags,
+      tags: this.tags,
       slug: this.slug,
       cover: this.cover,
       publishedAt: beijingInputToIso(this.publishedAt) ?? "",

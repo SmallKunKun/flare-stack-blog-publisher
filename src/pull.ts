@@ -82,10 +82,8 @@ async function buildNoteContent(api: BlogApi, post: AdminPost): Promise<string> 
     ...(post.summary ? { summary: post.summary } : {}),
     ...(post.slug ? { slug: post.slug } : {}),
     ...(publishedAt ? { publishedAt: toBeijingIso(publishedAt) } : {}),
-    ...(post.category ? { category: post.category.name } : {}),
-    ...(post.tags.length > 0
-      ? { tags: post.tags.map((tag) => tag.name) }
-      : {}),
+    category: post.category?.name ?? "",
+    tags: post.tags.map((tag) => tag.name),
     fsb_post_id: post.id,
     ...(publicSlug
       ? {
