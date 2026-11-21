@@ -302,35 +302,32 @@ body:not(.fsb-show-internal) .metadata-property[data-property-key^="fsb_"] {
 }
 
 .fsb-media-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 10px;
-  max-height: 60vh;
-  overflow-y: auto;
-  padding-right: 4px;
+  column-width: 180px;
+  column-gap: 10px;
 }
 
 .fsb-media-card {
-  display: flex;
-  flex-direction: column;
+  display: inline-block;
+  width: 100%;
+  margin-bottom: 10px;
+  break-inside: avoid;
   overflow: hidden;
   border-radius: 8px;
   background: var(--background-secondary);
 }
 
 .fsb-media-thumb {
-  aspect-ratio: 4 / 3;
   display: flex;
   align-items: center;
   justify-content: center;
+  min-height: 60px;
   background: var(--background-primary);
 }
 
 .fsb-media-thumb img {
   display: block;
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  height: auto;
 }
 
 .fsb-media-thumb-empty {
@@ -373,4 +370,9 @@ body:not(.fsb-show-internal) .metadata-property[data-property-key^="fsb_"] {
 
 .fsb-media-more-button {
   width: 100%;
+}
+
+.modal.fsb-media-modal .modal-content {
+  max-height: 75vh;
+  overflow-y: auto;
 }
