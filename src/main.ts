@@ -247,69 +247,66 @@ export default class FlareStackBlogPublisher extends Plugin {
       return;
     }
 
+    const file = this.activeMarkdownFile();
+    const noFile = file === null;
     const menu = new Menu();
+
     menu.addItem((item) =>
       item
-        .setTitle("发布当前笔记")
-        .setIcon("upload")
-        .onClick(() => this.publishActive("publish")),
+        .setTitle("新建文章")
+        .setIcon("plus")
+        .onClick(() => this.openNewPostModal()),
     );
     menu.addItem((item) =>
       item
-        .setTitle("保存为草稿")
-        .setIcon("save")
-        .onClick(() => this.publishActive("draft")),
-    );
-    menu.addItem((item) =>
-      item
-        .setTitle("打开博客文章")
-        .setIcon("external-link")
-        .onClick(() => {
-          const file = this.activeMarkdownFile();
-          if (!file) {
-            new Notice("先打开一篇 Markdown 笔记。");
-            return;
-          }
-          void this.openPost(file);
-        }),
-    );
-    menu.addItem((item) =>
-      item
-        .setTitle("拉取文章…")
+        .setTitle("拉取文章")
         .setIcon("download")
         .onClick(() => void this.openPullModal()),
     );
     menu.addItem((item) =>
       item
-        .setTitle("设置发布时间…")
+        .setTitle("设置日期")
         .setIcon("calendar")
+        .setDisabled(noFile)
         .onClick(() => {
-          const file = this.activeMarkdownFile();
-          if (!file) {
-            new Notice("先打开一篇 Markdown 笔记。");
-            return;
-          }
-          void this.openPublishedAtModal(file);
+          if (file) void this.openPublishedAtModal(file);
         }),
     );
     menu.addItem((item) =>
       item
-        .setTitle("设置分类和标签…")
+        .setTitle("设置分类和标签")
         .setIcon("tag")
+        .setDisabled(noFile)
         .onClick(() => {
-          const file = this.activeMarkdownFile();
-          if (!file) {
-            new Notice("先打开一篇 Markdown 笔记。");
-            return;
-          }
-          void this.openTaxonomyModal(file);
+          if (file) void this.openTaxonomyModal(file);
         }),
     );
     menu.addItem((item) =>
       item
-        .setTitle("新建文章…")
-        .setIcon("plus")
-        .onClick(() => this.openNewPostModal()),
+        .setTitle("保存草稿")
+        .setIcon("save")
+        .setDisabled(noFile)
+        .onClick(() => {
+          if (file) void this.runPublish(file, "draft");
+        }),
+    );
+    menu.addItem((item) =>
+      item
+        .setTitle("发布文章")
+        .setIcon("upload")
+        .setDisabled(noFile)
+        .onClick(() => {
+          if (file) void this.runPublish(file, "publish");
+        }),
+    );
+    menu.addItem((item) =>
+      item
+        .setTitle("打开文章")
+        .setIcon("external-link")
+        .setDisabled(noFile)
+        .onClick(() => {
+          if (file) void this.openPost(file);
+        }),
     );
     menu.addSeparator();
     menu.addItem((item) =>
