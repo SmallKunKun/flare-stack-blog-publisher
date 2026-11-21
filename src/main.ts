@@ -538,7 +538,7 @@ export default class FlareStackBlogPublisher extends Plugin {
         "",
         [],
         (form) => void this.saveArticleInfo(file, form),
-        { mode: "edit", initial },
+        { mode: "edit", initial, sourcePath: file.path },
       ).open();
     } catch (error) {
       console.error("Flare Stack Blog read article info failed", error);

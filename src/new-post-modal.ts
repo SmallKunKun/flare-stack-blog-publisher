@@ -3,6 +3,8 @@ import {
   Modal,
   Notice,
   Setting,
+  TFile,
+  normalizePath,
   type App,
 } from "obsidian";
 import type { BlogApi } from "./api/client";
@@ -17,6 +19,7 @@ import {
 export interface NewPostModalOptions {
   mode?: "create" | "edit";
   initial?: NewPostForm;
+  sourcePath?: string;
 }
 
 export class NewPostModal extends Modal {
@@ -30,8 +33,10 @@ export class NewPostModal extends Modal {
   private titleInput: HTMLInputElement | null = null;
   private taxonomySetting: Setting | null = null;
   private coverSetting: Setting | null = null;
+  private coverPreviewEl: HTMLDivElement | null = null;
   private clearCoverButton: ButtonComponent | null = null;
   private readonly mode: "create" | "edit";
+  private readonly sourcePath: string;
 
   constructor(
     app: App,
@@ -44,6 +49,7 @@ export class NewPostModal extends Modal {
   ) {
     super(app);
     this.mode = options.mode ?? "create";
+    this.sourcePath = options.sourcePath ?? "";
     const initial = options.initial;
 
     if (initial) {
@@ -125,6 +131,11 @@ export class NewPostModal extends Modal {
           }),
       );
 
+    this.coverPreviewEl = this.contentEl.createDiv({
+      cls: "fsb-cover-preview",
+    });
+    this.renderCoverPreview();
+
     this.coverSetting = new Setting(this.contentEl)
       .setName("封面")
       .setDesc(this.coverSummary())
@@ -194,6 +205,7 @@ export class NewPostModal extends Modal {
   private updateCover(): void {
     this.coverSetting?.setDesc(this.coverSummary());
     this.clearCoverButton?.setDisabled(!this.cover);
+    this.renderCoverPreview();
   }
 
   private pickCover(): void {
@@ -201,6 +213,57 @@ export class NewPostModal extends Modal {
       this.cover = file.path;
       this.updateCover();
     }).open();
+  }
+
+  private renderCoverPreview(): void {
+    if (!this.coverPreviewEl) return;
+    this.coverPreviewEl.empty();
+
+    if (!this.cover) {
+      this.coverPreviewEl.createDiv({
+        text: "未选择封面",
+        cls: "fsb-cover-preview-empty",
+      });
+      return;
+    }
+
+    const source = this.coverSource(this.cover);
+    if (!source) {
+      this.coverPreviewEl.createDiv({
+        text: "找不到封面图片",
+        cls: "fsb-cover-preview-empty",
+      });
+      return;
+    }
+
+    const image = this.coverPreviewEl.createEl("img", {
+      attr: { src: source, alt: "封面预览" },
+    });
+    image.addEventListener("error", () => {
+      if (!this.coverPreviewEl) return;
+      this.coverPreviewEl.empty();
+      this.coverPreviewEl.createDiv({
+        text: "图片加载失败",
+        cls: "fsb-cover-preview-empty",
+      });
+    });
+  }
+
+  private coverSource(value: string): string | null {
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+    if (/^(?:https?:|data:)/i.test(trimmed)) return trimmed;
+
+    const wiki = trimmed.match(/^!?\[\[([^\]|]+)(?:\|[^\]]*)?\]\]$/);
+    const target = wiki?.[1]?.trim() ?? trimmed;
+    const file =
+      this.app.metadataCache.getFirstLinkpathDest(target, this.sourcePath) ??
+      this.app.vault.getAbstractFileByPath(normalizePath(target)) ??
+      this.app.vault
+        .getFiles()
+        .find((item) => item.path === target || item.name === target);
+
+    return file instanceof TFile ? this.app.vault.getResourcePath(file) : null;
   }
 
   private submit(): void {
