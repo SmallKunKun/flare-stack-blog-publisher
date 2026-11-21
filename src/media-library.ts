@@ -12,6 +12,7 @@ import { describeApiError } from "./api/errors";
 import type { Media } from "./api/types";
 import { ImagePickerModal } from "./image-picker";
 import { uploadVaultImage } from "./media";
+import { absoluteMediaUrl } from "./media-url";
 import { formatBeijingTime } from "./time";
 
 const PAGE_SIZE = 60;
@@ -273,10 +274,6 @@ export class MediaLibraryModal extends Modal {
       new Notice("复制链接失败");
     }
   }
-}
-
-function absoluteMediaUrl(origin: string, url: string): string {
-  return url.startsWith("/") ? `${origin}${url}` : url;
 }
 
 function formatBytes(bytes: number): string {

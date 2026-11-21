@@ -489,6 +489,13 @@ export default class FlareStackBlogPublisher extends Plugin {
     );
   }
 
+  private requireConfigured(): boolean {
+    if (this.isConfigured()) return true;
+    new Notice("请先配置博客地址和 API Key");
+    this.openPluginSettings();
+    return false;
+  }
+
   private openPluginSettings(): void {
     const setting = (
       this.app as unknown as {
@@ -504,11 +511,7 @@ export default class FlareStackBlogPublisher extends Plugin {
 
   private async testConnection(): Promise<void> {
     try {
-      if (!this.isConfigured()) {
-        new Notice("请先配置博客地址和 API Key");
-        this.openPluginSettings();
-        return;
-      }
+      if (!this.requireConfigured()) return;
       const api = this.createApi();
       const page = await api.listPosts({ limit: 1 });
       new Notice(`连接成功，共 ${page.total} 篇文章`);
@@ -522,11 +525,7 @@ export default class FlareStackBlogPublisher extends Plugin {
     mode: PublishMode,
     skipConfirm = false,
   ): Promise<void> {
-    if (!this.isConfigured()) {
-      new Notice("请先配置博客地址和 API Key");
-      this.openPluginSettings();
-      return;
-    }
+    if (!this.requireConfigured()) return;
 
     if (!skipConfirm) {
       let details: PublishConfirmation;
@@ -580,11 +579,7 @@ export default class FlareStackBlogPublisher extends Plugin {
   }
 
   private async runPublishChoice(file: TFile): Promise<void> {
-    if (!this.isConfigured()) {
-      new Notice("请先配置博客地址和 API Key");
-      this.openPluginSettings();
-      return;
-    }
+    if (!this.requireConfigured()) return;
 
     let details: PublishConfirmation;
     try {
@@ -637,11 +632,7 @@ export default class FlareStackBlogPublisher extends Plugin {
   }
 
   private async openPost(file: TFile): Promise<void> {
-    if (!this.isConfigured()) {
-      new Notice("请先配置博客地址和 API Key");
-      this.openPluginSettings();
-      return;
-    }
+    if (!this.requireConfigured()) return;
 
     try {
       const api = this.createApi();
@@ -673,11 +664,7 @@ export default class FlareStackBlogPublisher extends Plugin {
   }
 
   private async unpublishPost(file: TFile): Promise<void> {
-    if (!this.isConfigured()) {
-      new Notice("请先配置博客地址和 API Key");
-      this.openPluginSettings();
-      return;
-    }
+    if (!this.requireConfigured()) return;
 
     let postId: number | undefined;
     let title = file.basename;
@@ -746,11 +733,7 @@ export default class FlareStackBlogPublisher extends Plugin {
     title: string,
     postId: number | undefined,
   ): Promise<void> {
-    if (postId !== undefined && !this.isConfigured()) {
-      new Notice("请先配置博客地址和 API Key");
-      this.openPluginSettings();
-      return;
-    }
+    if (postId !== undefined && !this.requireConfigured()) return;
 
     let remoteState = "none";
 
@@ -791,11 +774,7 @@ export default class FlareStackBlogPublisher extends Plugin {
   }
 
   private async openPullModal(): Promise<void> {
-    if (!this.isConfigured()) {
-      new Notice("请先配置博客地址和 API Key");
-      this.openPluginSettings();
-      return;
-    }
+    if (!this.requireConfigured()) return;
 
     try {
       const api = this.createApi();
@@ -813,11 +792,7 @@ export default class FlareStackBlogPublisher extends Plugin {
   }
 
   private async openMediaLibrary(): Promise<void> {
-    if (!this.isConfigured()) {
-      new Notice("请先配置博客地址和 API Key");
-      this.openPluginSettings();
-      return;
-    }
+    if (!this.requireConfigured()) return;
 
     try {
       const api = this.createApi();

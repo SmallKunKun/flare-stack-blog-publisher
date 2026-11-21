@@ -82,7 +82,6 @@ export async function publishNote(
       mediaOptions,
     );
     publishBody = uploaded.body;
-    warnings.push(...uploaded.warnings);
   }
 
   if (settings.convertWikiLinks) {

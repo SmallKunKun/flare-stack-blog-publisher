@@ -24,15 +24,6 @@
   width: min(620px, 92vw);
 }
 
-.fsb-new-post-hint {
-  color: var(--text-muted);
-  margin-top: 0;
-}
-
-.fsb-taxonomy-tags {
-  margin-top: 4px;
-}
-
 .fsb-taxonomy-label {
   color: var(--text-muted);
   font-size: var(--font-ui-smaller);

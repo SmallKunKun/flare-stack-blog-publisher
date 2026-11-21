@@ -8,6 +8,7 @@ import type { BlogApi } from "./api/client";
 import type { AdminPost, AdminPostListItem } from "./api/types";
 import { mapOutsideCode } from "./markdown-code";
 import { numberValue, parseNote } from "./note";
+import { absoluteMediaUrl } from "./media-url";
 import { PROPERTY_KEYS } from "./properties";
 import { beijingIsoNow, toBeijingIso } from "./time";
 import {
@@ -21,7 +22,7 @@ import {
 /**
  * The folder that holds one subfolder per pulled post.
  */
-export function normalizePullFolder(value: string): string {
+function normalizePullFolder(value: string): string {
   return normalizeFolder(value, "FlareStackBlog");
 }
 
@@ -86,7 +87,7 @@ async function buildNoteContent(
   // the category name, and the draft's tags.
   const tags = post.tags && post.tags.length > 0 ? post.tags : item.tags;
   const coverUrl = post.cover?.url
-    ? absoluteUrl(post.cover.url, api.siteOrigin)
+    ? absoluteMediaUrl(api.siteOrigin, post.cover.url)
     : "";
   const frontmatter: Record<string, unknown> = {
     [PROPERTY_KEYS.title]: post.title,
@@ -201,8 +202,4 @@ function absolutizeLinks(body: string, origin: string): string {
       /((?:src|poster)=["'])(\/(?:images|post|moments)\/)/g,
       `$1${origin}$2`,
     );
-}
-
-function absoluteUrl(value: string, origin: string): string {
-  return value.startsWith("/") ? `${origin}${value}` : value;
 }

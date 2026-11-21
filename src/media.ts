@@ -19,17 +19,16 @@ const MIME_TYPES: Record<string, string> = {
 
 const IMAGE_EXTENSIONS = new Set(Object.keys(MIME_TYPES));
 
-export interface BodyUploadResult {
+interface BodyUploadResult {
   body: string;
+}
+
+interface CoverUploadResult {
+  mediaId: number | undefined;
   warnings: string[];
 }
 
-export interface CoverUploadResult {
-  mediaId: number | null | undefined;
-  warnings: string[];
-}
-
-export interface MediaUploadOptions {
+interface MediaUploadOptions {
   /** Upload under a UUID-shaped name instead of the local file name. */
   renameToUuid: boolean;
 }
@@ -44,7 +43,6 @@ export async function uploadBodyImages(
   options: MediaUploadOptions,
 ): Promise<BodyUploadResult> {
   const cache: UploadCache = new Map();
-  const warnings: string[] = [];
 
   const result = await mapOutsideCode(body, async (segment) => {
     let next = await replaceAsync(
@@ -94,7 +92,7 @@ export async function uploadBodyImages(
     return next;
   });
 
-  return { body: result, warnings };
+  return { body: result };
 }
 
 export async function uploadCover(

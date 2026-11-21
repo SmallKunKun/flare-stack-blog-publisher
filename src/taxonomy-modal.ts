@@ -78,7 +78,7 @@ export class TaxonomyModal extends Modal {
       });
 
     const categoryChipsBox = this.contentEl.createDiv({
-      cls: "fsb-taxonomy-tags fsb-taxonomy-chip-section",
+      cls: "fsb-taxonomy-chip-section",
     });
     categoryChipsBox.createEl("div", {
       text: "已有分类",
@@ -103,7 +103,7 @@ export class TaxonomyModal extends Modal {
       });
 
     const tagsBox = this.contentEl.createDiv({
-      cls: "fsb-taxonomy-tags fsb-taxonomy-chip-section",
+      cls: "fsb-taxonomy-chip-section",
     });
     tagsBox.createEl("div", {
       text: "已有标签",

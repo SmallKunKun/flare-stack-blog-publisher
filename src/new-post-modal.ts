@@ -10,6 +10,7 @@ import type { NewPostForm } from "./create-post";
 import { coverSource } from "./cover";
 import { ImagePickerModal } from "./image-picker";
 import { MediaLibraryModal } from "./media-library";
+import { absoluteMediaUrl } from "./media-url";
 import { TaxonomyModal } from "./taxonomy-modal";
 import {
   beijingDateTimeLocalValue,
@@ -235,9 +236,7 @@ export class NewPostModal extends Modal {
     new MediaLibraryModal(this.app, api, false, {
       selectMode: true,
       onChoose: (media) => {
-        this.cover = media.url.startsWith("/")
-          ? `${api.siteOrigin}${media.url}`
-          : media.url;
+        this.cover = absoluteMediaUrl(api.siteOrigin, media.url);
         this.coverMediaId = media.id;
         this.updateCover();
       },

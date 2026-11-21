@@ -61,7 +61,7 @@ export function numberValue(value: unknown): number | undefined {
   return undefined;
 }
 
-export function stringList(value: unknown): string[] {
+function stringList(value: unknown): string[] {
   const values = Array.isArray(value) ? value : [value];
   const result: string[] = [];
   const seen = new Set<string>();
