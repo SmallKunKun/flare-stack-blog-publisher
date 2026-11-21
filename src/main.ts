@@ -26,6 +26,7 @@ import {
 import { postUrlOf, publishNote, type PublishMode } from "./publish";
 import {
   confirmPublish,
+  choosePublishMode,
   type PublishConfirmation,
 } from "./publish-confirm-modal";
 import { PROPERTY_KEYS, migrateProperties } from "./properties";
@@ -66,16 +67,16 @@ export default class FlareStackBlogPublisher extends Plugin {
 
     this.addSettingTab(new PublisherSettingTab(this.app, this));
 
-    this.addRibbonIcon("upload", "发布到博客", () => {
-      this.publishActive("publish");
+    this.addRibbonIcon("plus", "新建文章", () => {
+      this.openNewPostModal();
     });
 
     this.addRibbonIcon("download", "拉取文章", () => {
       void this.openPullModal();
     });
 
-    this.addRibbonIcon("plus", "新建文章", () => {
-      this.openNewPostModal();
+    this.addRibbonIcon("upload", "发布文章", () => {
+      this.publishActiveChoice();
     });
 
     this.registerEvent(
@@ -179,13 +180,17 @@ export default class FlareStackBlogPublisher extends Plugin {
     return file;
   }
 
-  private publishActive(mode: PublishMode = "publish"): void {
+  private publishActiveChoice(): void {
     const file = this.activeMarkdownFile();
     if (!file) {
       new Notice("先打开一篇 Markdown 笔记。");
       return;
     }
-    void this.runPublish(file, mode);
+    void this.runPublishChoice(file);
+  }
+
+  private publishChoice(file: TFile): void {
+    void this.runPublishChoice(file);
   }
 
   private publishFile(file: TFile, mode: PublishMode = "publish"): void {
@@ -199,9 +204,9 @@ export default class FlareStackBlogPublisher extends Plugin {
       if (view.containerEl.querySelector(".fsb-publish-action")) continue;
 
       try {
-        const action = view.addAction("upload", "发布到博客", () => {
-          if (view.file) this.publishFile(view.file, "publish");
-          else this.publishActive("publish");
+        const action = view.addAction("upload", "发布文章", () => {
+          if (view.file) this.publishChoice(view.file);
+          else this.publishActiveChoice();
         });
         action.addClass("fsb-publish-action");
         this.viewActions.add(action);
@@ -348,33 +353,28 @@ export default class FlareStackBlogPublisher extends Plugin {
     }
   }
 
-  private async runPublish(file: TFile, mode: PublishMode): Promise<void> {
+  private async runPublish(
+    file: TFile,
+    mode: PublishMode,
+    skipConfirm = false,
+  ): Promise<void> {
     if (!this.isConfigured()) {
       new Notice("还没填博客地址或 API Key。");
       this.openPluginSettings();
       return;
     }
 
-    let details: PublishConfirmation;
-    try {
-      const raw = await this.app.vault.read(file);
-      const note = parseNote(raw);
-      details = {
-        mode,
-        title: noteTitle(note.frontmatter, file.basename),
-        path: file.path,
-        category: noteCategory(note.frontmatter) ?? "",
-        tags: noteTags(note.frontmatter),
-        publishedAt: notePublishedAt(note.frontmatter),
-        postId: notePostId(note.frontmatter),
-      };
-    } catch (error) {
-      console.error("Flare Stack Blog read note failed", error);
-      new Notice(`读取笔记失败：${describeApiError(error)}`, 8000);
-      return;
+    if (!skipConfirm) {
+      let details: PublishConfirmation;
+      try {
+        details = await this.buildPublishDetails(file, mode);
+      } catch (error) {
+        console.error("Flare Stack Blog read note failed", error);
+        new Notice(`读取笔记失败：${describeApiError(error)}`, 8000);
+        return;
+      }
+      if (!(await confirmPublish(this.app, details))) return;
     }
-
-    if (!(await confirmPublish(this.app, details))) return;
 
     new Notice(mode === "publish" ? "正在发布…" : "正在保存草稿…");
 
@@ -413,6 +413,44 @@ export default class FlareStackBlogPublisher extends Plugin {
       console.error("Flare Stack Blog publish failed", error);
       new Notice(`发布失败：${describeApiError(error)}`, 10000);
     }
+  }
+
+  private async runPublishChoice(file: TFile): Promise<void> {
+    if (!this.isConfigured()) {
+      new Notice("还没填博客地址或 API Key。");
+      this.openPluginSettings();
+      return;
+    }
+
+    let details: PublishConfirmation;
+    try {
+      details = await this.buildPublishDetails(file, "publish");
+    } catch (error) {
+      console.error("Flare Stack Blog read note failed", error);
+      new Notice(`读取笔记失败：${describeApiError(error)}`, 8000);
+      return;
+    }
+
+    const mode = await choosePublishMode(this.app, details);
+    if (!mode) return;
+    await this.runPublish(file, mode, true);
+  }
+
+  private async buildPublishDetails(
+    file: TFile,
+    mode: PublishMode,
+  ): Promise<PublishConfirmation> {
+    const raw = await this.app.vault.read(file);
+    const note = parseNote(raw);
+    return {
+      mode,
+      title: noteTitle(note.frontmatter, file.basename),
+      path: file.path,
+      category: noteCategory(note.frontmatter) ?? "",
+      tags: noteTags(note.frontmatter),
+      publishedAt: notePublishedAt(note.frontmatter),
+      postId: notePostId(note.frontmatter),
+    };
   }
 
   createApi(): BlogApi {

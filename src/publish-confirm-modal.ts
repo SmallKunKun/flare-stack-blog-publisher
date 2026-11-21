@@ -17,17 +17,29 @@ export function confirmPublish(
   details: PublishConfirmation,
 ): Promise<boolean> {
   return new Promise((resolve) => {
-    new PublishConfirmModal(app, details, resolve).open();
+    new PublishActionModal(app, details, false, (mode) => {
+      resolve(mode === details.mode);
+    }).open();
   });
 }
 
-class PublishConfirmModal extends Modal {
+export function choosePublishMode(
+  app: App,
+  details: PublishConfirmation,
+): Promise<PublishMode | null> {
+  return new Promise((resolve) => {
+    new PublishActionModal(app, details, true, resolve).open();
+  });
+}
+
+class PublishActionModal extends Modal {
   private settled = false;
 
   constructor(
     app: App,
     private readonly details: PublishConfirmation,
-    private readonly resolve: (value: boolean) => void,
+    private readonly allowChoice: boolean,
+    private readonly resolve: (mode: PublishMode | null) => void,
   ) {
     super(app);
   }
@@ -35,13 +47,22 @@ class PublishConfirmModal extends Modal {
   onOpen(): void {
     const publishing = this.details.mode === "publish";
     this.modalEl.addClass("fsb-confirm-modal");
-    this.titleEl.setText(publishing ? "确认发布" : "确认保存草稿");
-    this.contentEl.createEl("p", {
-      text: publishing
-        ? "发布后文章会公开到博客。"
-        : "只保存到博客草稿，不会公开。",
-      cls: "fsb-confirm-hint",
-    });
+
+    if (this.allowChoice) {
+      this.titleEl.setText("保存还是发布？");
+      this.contentEl.createEl("p", {
+        text: "保存草稿不会公开，发布后会直接上线。",
+        cls: "fsb-confirm-hint",
+      });
+    } else {
+      this.titleEl.setText(publishing ? "确认发布" : "确认保存草稿");
+      this.contentEl.createEl("p", {
+        text: publishing
+          ? "发布后文章会公开到博客。"
+          : "只保存到博客草稿，不会公开。",
+        cls: "fsb-confirm-hint",
+      });
+    }
 
     const list = this.contentEl.createDiv({ cls: "fsb-confirm-list" });
     this.row(list, "标题", this.details.title);
@@ -53,7 +74,7 @@ class PublishConfirmModal extends Modal {
     );
     this.row(
       list,
-      "发布时间",
+      "日期",
       this.details.publishedAt
         ? formatBeijingTime(this.details.publishedAt)
         : "未设置，发布时自动填",
@@ -63,9 +84,11 @@ class PublishConfirmModal extends Modal {
       "云端文章",
       this.details.postId
         ? `#${this.details.postId}，会更新已有文章`
-        : publishing
-          ? "首次发布，会按标题查重"
-          : "首次保存，会按标题查重",
+        : this.allowChoice
+          ? "首次操作，会按标题查重"
+          : publishing
+            ? "首次发布，会按标题查重"
+            : "首次保存，会按标题查重",
     );
     this.row(list, "本地文件", this.details.path);
 
@@ -74,31 +97,41 @@ class PublishConfirmModal extends Modal {
       : Number.NaN;
     if (Number.isFinite(time) && time > Date.now()) {
       this.contentEl.createEl("p", {
-        text: "发布时间晚于现在，发布会被博客拒绝。",
+        text: "日期晚于现在，发布会被博客拒绝。",
         cls: "fsb-confirm-warning",
       });
     }
 
     const actions = this.contentEl.createDiv({ cls: "fsb-conflict-actions" });
-    new ButtonComponent(actions)
-      .setButtonText(publishing ? "发布" : "保存草稿")
-      .setCta()
-      .onClick(() => this.finish(true));
+    if (this.allowChoice) {
+      new ButtonComponent(actions)
+        .setButtonText("保存草稿")
+        .onClick(() => this.finish("draft"));
+      new ButtonComponent(actions)
+        .setButtonText("发布文章")
+        .setCta()
+        .onClick(() => this.finish("publish"));
+    } else {
+      new ButtonComponent(actions)
+        .setButtonText(publishing ? "发布" : "保存草稿")
+        .setCta()
+        .onClick(() => this.finish(this.details.mode));
+    }
     new ButtonComponent(actions)
       .setButtonText("取消")
-      .onClick(() => this.finish(false));
+      .onClick(() => this.finish(null));
   }
 
   onClose(): void {
-    if (!this.settled) this.resolve(false);
+    if (!this.settled) this.resolve(null);
     this.contentEl.empty();
   }
 
-  private finish(value: boolean): void {
+  private finish(mode: PublishMode | null): void {
     if (this.settled) return;
     this.settled = true;
     this.close();
-    this.resolve(value);
+    this.resolve(mode);
   }
 
   private row(parent: HTMLElement, label: string, value: string): void {
